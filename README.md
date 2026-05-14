@@ -10,8 +10,10 @@ Face à la croissance du secteur de l'enseignement privé au Maroc et aux diffic
 
 | Élève | Rôle |
 |-------|------|
-| **Hafsa HOUNAOUI** | Co-chef de projet / Développeuse |
-| **Ihssan BEN LABSIR** | Co-chef de projet / Développeuse |
+| **Monsieur Ahmed ETTALBI**|Encadrant |
+| **Hafsa HOUNAOUI** |membre 1 |
+| **Ihssan BEN LABSIR** |memebre 2|
+
 
 **Encadrant :** Monsieur Ahmed ETTALBI
 
