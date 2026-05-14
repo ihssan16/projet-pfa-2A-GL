@@ -2,7 +2,7 @@
 
 ## 🎓 Contexte du Projet
 
-Ce projet est développé dans le cadre du **Projet de Fin d'Année (PFA)** de 2ème année du cycle ingénieur à l'**École Nationale Supérieure d'Informatique et d'Analyse des Systèmes (ENSIAS) - Rabat**.
+Ce projet est développé dans le cadre du **Projet python -m venv venvde Fin d'Année (PFA)** de 2ème année du cycle ingénieur à l'**École Nationale Supérieure d'Informatique et d'Analyse des Systèmes (ENSIAS) - Rabat**.
 
 Face à la croissance du secteur de l'enseignement privé au Maroc et aux difficultés de gestion administrative et pédagogique, cette plateforme propose une solution centralisée sous forme de **SaaS (Software as a Service)**.
 

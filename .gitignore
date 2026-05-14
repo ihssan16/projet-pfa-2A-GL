@@ -1,0 +1,40 @@
+# =========================
+# PYTHON & DJANGO (Backend)
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environnements virtuels
+venv/
+env/
+.venv/
+
+# Base de données locale (si vous testez avec SQLite avant PostgreSQL)
+db.sqlite3
+
+# Fichiers de variables d'environnement (TRÈS IMPORTANT POUR LA SÉCURITÉ)
+.env
+
+# =========================
+# ANGULAR & NODE (Frontend)
+# =========================
+frontend/node_modules/
+frontend/dist/
+frontend/tmp/
+frontend/out-tsc/
+frontend/bazel-out/
+
+# Logs npm
+npm-debug.log
+yarn-error.log
+
+# =========================
+# IDE & OS
+# =========================
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+.DS_Store
+Thumbs.db
