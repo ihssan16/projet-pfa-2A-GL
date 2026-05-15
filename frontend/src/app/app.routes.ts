@@ -44,4 +44,6 @@ export const routes: Routes = [
   // Parent
   { path: 'parent', component: ParentDashboard },
   { path: 'parent/notes', component: NotesComponent },
+
+  { path: 'admin-metier/dossiers/:id', component: DossiersComponent },
 ];

@@ -1,0 +1,32 @@
+.card {
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.list-group-item {
+  transition: background-color 0.2s ease;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+.table th {
+  border-top: none;
+  font-weight: 600;
+  color: #495057;
+}
+
+.btn-outline-primary, .btn-outline-danger {
+  padding: 4px 8px;
+  font-size: 12px;
+}

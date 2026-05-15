@@ -1,4 +1,155 @@
-<div class="container mt-4">
-  <h1>Dashboard Admin Système</h1>
-  <button class="btn btn-danger" (click)="logout()">Déconnexion</button>
+<div class="container-fluid px-4 py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="display-6 fw-bold mb-0">Admin Système</h1>
+      <p class="text-muted">Gestion technique & sécurité</p>
+    </div>
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="bi bi-person-circle"></i> Super Admin
+      </button>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Déconnexion</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Cartes KPI -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3" *ngFor="let stat of stats">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-muted mb-1">{{ stat.label }}</p>
+              <h2 class="display-5 fw-bold mb-0">{{ stat.value }}</h2>
+              <small class="text-{{ stat.trend === 'up' ? 'success' : 'danger' }}">
+                {{ stat.change }}
+              </small>
+            </div>
+            <div class="bg-{{ stat.color }} bg-opacity-10 rounded p-3">
+              <i class="bi bi-{{ stat.icon }} fs-2 text-{{ stat.color }}"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gestion Utilisateurs et Activité -->
+  <div class="row g-4">
+    <!-- Tableau utilisateurs -->
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="fw-bold mb-0">Gestion Utilisateurs</h5>
+              <small class="text-muted">Comptes et permissions</small>
+            </div>
+            <button class="btn btn-primary btn-sm">
+              <i class="bi bi-person-plus"></i> Nouvel utilisateur
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Statut</th>
+                  <th>Email</th>
+                  <th>Rôle</th>
+                  <th>Dernière activité</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let user of utilisateurs">
+                  <td class="fw-bold">{{ user.nom }}</td>
+                  <td>
+                    <span class="badge {{ getStatutBadgeClass(user.statut) }}">
+                      {{ user.statut }}
+                    </span>
+                  </td>
+                  <td>{{ user.email }}</td>
+                  <td>{{ user.role }}</td>
+                  <td>{{ user.activite }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary me-1">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activité en temps réel -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pt-4">
+          <h5 class="fw-bold mb-0">Activité en temps réel</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item border-0 py-3" *ngFor="let activite of activites">
+              <div class="d-flex">
+                <div class="bg-{{ activite.color }} bg-opacity-10 rounded p-2 me-3">
+                  <i class="bi bi-{{ activite.icon }} text-{{ activite.color }}"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="fw-bold">{{ activite.action }}</div>
+                  <small class="text-muted">{{ activite.detail }}</small>
+                </div>
+                <small class="text-muted">{{ activite.heure }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-white border-0 pb-4">
+          <button class="btn btn-link">Voir l'historique complet</button>
+        </div>
+      </div>
+
+      <!-- Alertes Sécurité -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">Alertes Sécurité</h5>
+            <span class="badge bg-danger">3 incidents</span>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item border-0 py-3" *ngFor="let alerte of alertes">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <span class="badge {{ getNiveauBadgeClass(alerte.niveau) }} mb-2">
+                    {{ alerte.niveau }}
+                  </span>
+                  <div class="fw-bold">{{ alerte.message }}</div>
+                  <small class="text-muted">{{ alerte.source }}</small>
+                </div>
+                <small class="text-muted">{{ alerte.date }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-white border-0 pb-4">
+          <button class="btn btn-outline-danger w-100">
+            <i class="bi bi-shield-check"></i> Analyser les incidents
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
