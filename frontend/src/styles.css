@@ -1,0 +1,25 @@
+/* You can add global styles to this file, and also import other style files */
+/* Ajout de styles personnalisés */
+.card {
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.badge {
+  padding: 0.5em 0.75em;
+}
+
+.table th {
+  border-top: none;
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.list-group-item {
+  border-left: none;
+  border-right: none;
+}
