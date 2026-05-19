@@ -1,0 +1,156 @@
+<div class="container-fluid px-4 py-4">
+  <!-- Header avec info école -->
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <div class="d-flex align-items-center mb-2">
+        <i class="bi bi-building fs-1 text-primary me-3"></i>
+        <div>
+          <h1 class="display-6 fw-bold mb-0">{{ ecole.nom }}</h1>
+          <p class="text-muted mb-0">{{ ecole.ville }} • {{ ecole.niveaux }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="bi bi-person-circle"></i> École
+      </button>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Déconnexion</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Cartes KPI -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3" *ngFor="let stat of stats">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-muted mb-1">{{ stat.label }}</p>
+              <h2 class="display-5 fw-bold mb-0">{{ stat.value }}</h2>
+              <small class="text-success">+{{ stat.change }}</small>
+            </div>
+            <div class="bg-{{ stat.color }} bg-opacity-10 rounded p-3">
+              <i class="bi bi-{{ stat.icon }} fs-2 text-{{ stat.color }}"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documents et Notifications -->
+  <div class="row g-4">
+    <!-- Mes Documents -->
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="fw-bold mb-0">Mes Documents</h5>
+              <small class="text-muted">Gestion des documents officiels</small>
+            </div>
+            <div>
+              <button class="btn btn-primary btn-sm me-2" (click)="uploadDocument()">
+                <i class="bi bi-cloud-upload"></i> Upload
+              </button>
+              <button class="btn btn-outline-primary btn-sm" (click)="voirTousDocuments()">
+                Voir tous (156)
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Nom du document</th>
+                  <th>Type</th>
+                  <th>Taille</th>
+                  <th>Date</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let doc of documents">
+                  <td class="fw-bold">
+                    <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                    {{ doc.nom }}
+                  </td>
+                  <td><span class="badge bg-secondary">{{ doc.type }}</span></td>
+                  <td>{{ doc.taille }}</td>
+                  <td>{{ doc.date }}</td>
+                  <td>
+                    <span class="badge {{ getStatutBadgeClass(doc.statut) }}">
+                      {{ doc.statut }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary me-1">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary">
+                      <i class="bi bi-download"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pt-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">Notifications</h5>
+            <span class="badge bg-danger rounded-pill">{{ notifications.length }}</span>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item border-0 py-3" *ngFor="let notif of notifications">
+              <div class="d-flex">
+                <div class="bg-{{ getNotificationClass(notif.type) }} bg-opacity-10 rounded p-2 me-3">
+                  <i class="bi bi-{{ notif.icon }} text-{{ getNotificationClass(notif.type) }}"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="fw-bold">{{ notif.message }}</div>
+                  <small class="text-muted">{{ notif.temps }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-white border-0 pb-4">
+          <button class="btn btn-link" (click)="voirToutesNotifications()">
+            Voir toutes les notifications
+          </button>
+        </div>
+      </div>
+
+      <!-- Actions rapides -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-4">
+          <h5 class="fw-bold mb-0">Actions rapides</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-6" *ngFor="let action of actionsRapides">
+              <button class="btn btn-outline-secondary w-100 text-start" [routerLink]="action.route">
+                <i class="bi bi-{{ action.icon }} me-2"></i>
+                {{ action.label }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

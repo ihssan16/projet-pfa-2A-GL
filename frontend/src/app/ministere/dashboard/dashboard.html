@@ -1,0 +1,179 @@
+<div class="container-fluid px-4 py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="display-6 fw-bold mb-0">Ministère de l'Éducation Nationale</h1>
+      <p class="text-muted">Supervision des Établissements Privés</p>
+    </div>
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="bi bi-person-circle"></i> Ministère
+      </button>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Déconnexion</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Cartes KPI -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3" *ngFor="let stat of stats">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-muted mb-1">{{ stat.label }}</p>
+              <h2 class="display-5 fw-bold mb-0">{{ stat.value }}</h2>
+              <small class="text-success">{{ stat.change }}</small>
+            </div>
+            <div class="bg-{{ stat.color }} bg-opacity-10 rounded p-3">
+              <i class="bi bi-{{ stat.icon }} fs-2 text-{{ stat.color }}"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue par Région -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 pt-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="fw-bold mb-0">Vue par Région</h5>
+          <small class="text-muted">Supervision détaillée par région</small>
+        </div>
+        <div>
+          <span class="badge bg-primary me-2">173 Établissements</span>
+          <span class="badge bg-success">42,847 Élèves</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Région</th>
+              <th>Établissements</th>
+              <th>Élèves</th>
+              <th>Conformité</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let region of regions">
+              <td class="fw-bold">{{ region.nom }}</td>
+              <td>{{ region.etablissements }}</td>
+              <td>{{ region.eleves | number }}</td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                    <div class="progress-bar {{ getConformiteClass(region.conformite) }}" 
+                         [style.width]="region.conformite + '%'">
+                    </div>
+                  </div>
+                  <span>{{ region.conformite }}%</span>
+                </div>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary" (click)="voirDetailsRegion(region.nom)">
+                  <i class="bi bi-eye"></i> Détails
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rapports et Alertes -->
+  <div class="row g-4">
+    <!-- Rapports récents -->
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">Rapports Récents</h5>
+            <button class="btn btn-primary btn-sm" (click)="genererRapport()">
+              <i class="bi bi-plus-circle"></i> Générer nouveau rapport
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item border-0 py-3" *ngFor="let rapport of rapports">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                  <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                    <i class="bi bi-{{ rapport.icon }} text-primary"></i>
+                  </div>
+                  <div>
+                    <div class="fw-bold">{{ rapport.nom }}</div>
+                    <small class="text-muted">
+                      {{ rapport.type }} : {{ rapport.pages }} pages • {{ rapport.date }}
+                    </small>
+                  </div>
+                </div>
+                <div>
+                  <button class="btn btn-sm btn-outline-secondary me-1">
+                    <i class="bi bi-download"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-info">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-white border-0 pb-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">Exporté au format PDF</small>
+            <button class="btn btn-link">Tous les rapports</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alertes et Validation -->
+    <div class="col-md-4">
+      <!-- Validation en attente -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body text-center py-4">
+          <i class="bi bi-clock-history fs-1 text-warning mb-2"></i>
+          <h2 class="display-4 fw-bold text-warning mb-0">23</h2>
+          <p class="text-muted mb-3">Dossiers nécessitant votre validation finale</p>
+          <button class="btn btn-warning" (click)="voirDossiers()">
+            <i class="bi bi-folder-check"></i> Voir les dossiers
+          </button>
+        </div>
+      </div>
+
+      <!-- Alertes -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-4">
+          <h5 class="fw-bold mb-0">
+            <i class="bi bi-bell-fill text-danger"></i> Alertes
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item border-0 py-3" *ngFor="let alerte of alertes">
+              <div class="d-flex">
+                <div class="bg-{{ alerte.type }} bg-opacity-10 rounded p-2 me-3">
+                  <i class="bi bi-{{ alerte.icon }} text-{{ alerte.type }}"></i>
+                </div>
+                <div>
+                  <div class="fw-bold">{{ alerte.message }}</div>
+                  <small class="text-muted">{{ alerte.detail }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

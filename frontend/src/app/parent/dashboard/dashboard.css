@@ -1,0 +1,49 @@
+.card {
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.progress {
+  border-radius: 4px;
+}
+
+.timeline {
+  position: relative;
+}
+
+.timeline .bg-light {
+  transition: all 0.2s ease;
+}
+
+.timeline .bg-light:hover {
+  background-color: #e9ecef !important;
+  transform: translateX(5px);
+}
+
+.btn-outline-secondary {
+  transition: all 0.2s ease;
+}
+
+.btn-outline-secondary:hover {
+  transform: translateX(5px);
+}
+
+.alert-success {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border: none;
+}
+
+.text-success {
+  color: #28a745 !important;
+}
+
+.text-info {
+  color: #17a2b8 !important;
+}
+
+.text-warning {
+  color: #ffc107 !important;
+}

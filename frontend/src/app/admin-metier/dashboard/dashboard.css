@@ -1,0 +1,29 @@
+.progress {
+  height: 8px;
+  border-radius: 4px;
+}
+
+.card {
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.table th {
+  border-top: none;
+  font-weight: 600;
+  color: #495057;
+}
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.btn-outline-primary {
+  padding: 4px 12px;
+  font-size: 12px;
+}
