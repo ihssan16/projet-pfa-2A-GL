@@ -1,8 +1,5 @@
 import { Routes } from '@angular/router';
 
-<<<<<<< HEAD
-export const routes: Routes = [];
-=======
 // Admin Système
 import { DashboardComponent as AdminSystemeDashboard } from './admin-systeme/dashboard/dashboard';
 //import { GestionUtilisateursComponent } from './admin-systeme/gestion-utilisateurs/gestion-utilisateurs';
@@ -49,4 +46,3 @@ export const routes: Routes = [
 
   { path: 'admin-metier/dossiers/:id', component: DossiersComponent },
 ];
->>>>>>> 4effaabe5be9f91f9e0641ed6244ab19901dcd48
