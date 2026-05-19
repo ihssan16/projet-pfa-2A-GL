@@ -1,0 +1,104 @@
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <!-- Header -->
+      <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">Système de Gestion Éducative</h1>
+        <p class="lead text-muted">Sélectionnez votre profil pour accéder à l'interface</p>
+        <hr class="my-4 w-50 mx-auto">
+      </div>
+      
+      <!-- Cartes des profils -->
+      <div class="row g-4">
+        
+        <!-- Admin Système -->
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 shadow-lg border-0 rounded-4" style="cursor: pointer;" (click)="selectProfile('admin-systeme')">
+            <div class="card-body text-center p-4">
+              <div class="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-block mb-3">
+                <i class="bi bi-shield-lock fs-1 text-primary"></i>
+              </div>
+              <h3 class="card-title fw-bold">Admin Système</h3>
+              <p class="card-text text-muted">Gestion technique & sécurité</p>
+              <button class="btn btn-outline-primary rounded-pill px-4">
+                Accéder <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Admin Métier -->
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 shadow-lg border-0 rounded-4" style="cursor: pointer;" (click)="selectProfile('admin-metier')">
+            <div class="card-body text-center p-4">
+              <div class="bg-success bg-opacity-10 rounded-circle p-3 d-inline-block mb-3">
+                <i class="bi bi-folder-check fs-1 text-success"></i>
+              </div>
+              <h3 class="card-title fw-bold">Admin Métier</h3>
+              <p class="card-text text-muted">Validation dossiers</p>
+              <button class="btn btn-outline-success rounded-pill px-4">
+                Accéder <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- École Privée -->
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 shadow-lg border-0 rounded-4" style="cursor: pointer;" (click)="selectProfile('ecole')">
+            <div class="card-body text-center p-4">
+              <div class="bg-info bg-opacity-10 rounded-circle p-3 d-inline-block mb-3">
+                <i class="bi bi-building fs-1 text-info"></i>
+              </div>
+              <h3 class="card-title fw-bold">École Privée</h3>
+              <p class="card-text text-muted">Gestion établissement</p>
+              <button class="btn btn-outline-info rounded-pill px-4">
+                Accéder <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Ministère -->
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 shadow-lg border-0 rounded-4" style="cursor: pointer;" (click)="selectProfile('ministere')">
+            <div class="card-body text-center p-4">
+              <div class="bg-danger bg-opacity-10 rounded-circle p-3 d-inline-block mb-3">
+                <i class="bi bi-graph-up fs-1 text-danger"></i>
+              </div>
+              <h3 class="card-title fw-bold">Ministère</h3>
+              <p class="card-text text-muted">Supervision nationale</p>
+              <button class="btn btn-outline-danger rounded-pill px-4">
+                Accéder <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Parent/Étudiant -->
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 shadow-lg border-0 rounded-4" style="cursor: pointer;" (click)="selectProfile('parent')">
+            <div class="card-body text-center p-4">
+              <div class="bg-warning bg-opacity-10 rounded-circle p-3 d-inline-block mb-3">
+                <i class="bi bi-person-badge fs-1 text-warning"></i>
+              </div>
+              <h3 class="card-title fw-bold">Parent/Étudiant</h3>
+              <p class="card-text text-muted">Suivi scolarité</p>
+              <button class="btn btn-outline-warning rounded-pill px-4">
+                Accéder <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="text-center mt-5 pt-3">
+        <p class="text-muted">
+          <i class="bi bi-info-circle"></i> Version Démo • Cliquez sur un profil pour découvrir l'interface adaptée
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

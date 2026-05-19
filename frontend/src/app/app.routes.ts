@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { LoginComponent } from './login/login';
 
 // Admin Système
 import { DashboardComponent as AdminSystemeDashboard } from './admin-systeme/dashboard/dashboard';
