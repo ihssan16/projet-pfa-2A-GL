@@ -12,8 +12,13 @@ import { Router } from '@angular/router';
 export class LoginComponent {
   constructor(private router: Router) {}
   
-  selectProfile(profile: string) {
-    // Redirige vers le dashboard correspondant
-    this.router.navigate([`/${profile}`]);
+  selectProfile(profil: string) {
+    if (profil === 'admin-systeme') {
+      // Si on clique sur Admin Système, on va vers le formulaire de login 
+      this.router.navigate(['/authentification']);
+    } else {
+      // Pour les autres cartes, on garde le comportement par défaut (vers les dashboards)
+      this.router.navigate(['/' + profil]);
+    }
   }
 }

@@ -21,9 +21,14 @@ import { RapportsComponent } from './ministere/rapports/rapports';
 import { DashboardComponent as ParentDashboard } from './parent/dashboard/dashboard';
 import { NotesComponent } from './parent/notes/notes';
 
+import { AuthentificationComponent } from './authentification/authentification';
+
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
+  { path: 'authentification', component: AuthentificationComponent },
+
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
   
   // Admin Système
   { path: 'admin-systeme', component: AdminSystemeDashboard },
