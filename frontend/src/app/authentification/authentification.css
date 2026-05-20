@@ -1,0 +1,9 @@
+/* Annule l'animation de mouvement spécifiquement pour la carte de connexion */
+.card:hover {
+  transform: none !important;
+}
+
+/* Optionnel : Annule complètement les transitions pour que rien ne bouge du tout */
+.card {
+  transition: none !important;
+}
