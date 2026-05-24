@@ -34,28 +34,34 @@ export class AuthentificationComponent implements OnInit {
   }
 
   onSubmit() {
-    this.messageErreur = '';
-    this.enChargement = true;
+  this.messageErreur = '';
+  this.enChargement = true;
 
-    this.authService.login(this.email, this.mot_de_passe).subscribe({
-      next: (reponse: any) => {
-        this.enChargement = false;
-        if (this.roleActuel === 'parent') {
-          this.router.navigate(['/parent']);
-        } else if (this.roleActuel === 'ecole') {
-          this.router.navigate(['/ecole']); // Redirection vers le dashboard École
-        } else {
-          this.router.navigate(['/admin-systeme']);
-        }
-      },
-      error: (erreur: any) => {
-        this.enChargement = false;
-        if (erreur.status === 401) {
-          this.messageErreur = 'Email ou mot de passe incorrect.';
-        } else {
-          this.messageErreur = 'Erreur de connexion au serveur backend.';
-        }
+  this.authService.login(this.email, this.mot_de_passe).subscribe({
+    next: (reponse: any) => {
+      this.enChargement = false;
+
+      // Redirection basée sur le rôle retourné par le backend
+      const routes: any = {
+        'ADMIN_SYS':       '/admin-systeme',
+        'ADMIN_METIER':    '/admin-metier',
+        'ECOLE':           '/ecole',
+        'MINISTERE':       '/ministere',
+        'PARENT_ETUDIANT': '/parent',
+      };
+      const route = routes[reponse.role] || '/login';
+      this.router.navigate([route]);
+    },
+    error: (erreur: any) => {
+      this.enChargement = false;
+      if (erreur.status === 401) {
+        this.messageErreur = 'Email ou mot de passe incorrect.';
+      } else if (erreur.status === 403) {
+        this.messageErreur = 'Compte désactivé. Contactez l\'administrateur.';
+      } else {
+        this.messageErreur = 'Erreur de connexion au serveur backend.';
       }
-    });
-  }
+    }
+  });
+}
 }

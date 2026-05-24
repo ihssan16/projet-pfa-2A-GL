@@ -23,6 +23,7 @@ import { DashboardComponent as ParentDashboard } from './parent/dashboard/dashbo
 import { NotesComponent } from './parent/notes/notes';
 
 import { AuthentificationComponent } from './authentification/authentification';
+import { GestionUtilisateursComponent } from './admin-systeme/gestion-utilisateurs/gestion-utilisateurs';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -33,7 +34,7 @@ export const routes: Routes = [
   
   // Admin Système
   { path: 'admin-systeme', component: AdminSystemeDashboard },
-  // { path: 'admin-systeme/utilisateurs', component: GestionUtilisateursComponent },
+  { path: 'admin-systeme/utilisateurs', component: GestionUtilisateursComponent },
   
   // Admin Métier
   { path: 'admin-metier', component: AdminMetierDashboard },

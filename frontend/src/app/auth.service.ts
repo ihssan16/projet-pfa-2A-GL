@@ -30,4 +30,19 @@ export class AuthService {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
   }
+  listerUtilisateurs(role?: string): Observable<any[]> {
+  const params = role ? `?role=${role}` : '';
+  const headers = { Authorization: `Bearer ${localStorage.getItem('access_token')}` };
+  return this.http.get<any[]>(`http://localhost:8000/api/utilisateurs/${params}`, { headers });
+}
+
+creerUtilisateur(data: any): Observable<any> {
+  const headers = { Authorization: `Bearer ${localStorage.getItem('access_token')}` };
+  return this.http.post<any>(`http://localhost:8000/api/utilisateurs/`, data, { headers });
+}
+
+desactiverUtilisateur(id: string): Observable<any> {
+  const headers = { Authorization: `Bearer ${localStorage.getItem('access_token')}` };
+  return this.http.delete(`http://localhost:8000/api/utilisateurs/${id}/`, { headers });
+}
 }

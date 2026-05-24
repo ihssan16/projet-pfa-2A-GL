@@ -13,7 +13,7 @@ export class LoginComponent {
   constructor(private router: Router) {}
   
   selectProfile(profil: string) {
-    if (profil === 'admin-systeme' || profil === 'parent' || profil === 'ecole') {
+    if (profil === 'admin-systeme' || profil === 'parent' || profil === 'ecole'   || profil === 'admin-metier' || profil === 'ministere') {
       // Si on clique sur Admin Système, on va vers le formulaire de login 
       this.router.navigate(['/authentification'], { queryParams: { role: profil } });
     } else {
