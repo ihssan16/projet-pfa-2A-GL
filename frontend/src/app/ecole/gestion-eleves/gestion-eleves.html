@@ -16,8 +16,12 @@
         </div>
         
         <div class="card-body p-4">
-          <div *ngIf="messageSucces" class="alert alert-success">{{ messageSucces }}</div>
-          <div *ngIf="messageErreur" class="alert alert-danger">{{ messageErreur }}</div>
+          <div *ngIf="messageSucces" class="alert alert-success mb-3">
+            {{ messageSucces }}
+          </div>
+          <div *ngIf="messageErreur" class="alert alert-danger mb-3">
+            {{ messageErreur }}
+          </div>
 
           <form (ngSubmit)="creerEleve()" #eleveForm="ngForm">
             <div class="row g-3 mb-3">
@@ -42,8 +46,8 @@
               <small class="text-muted">Minimum 6 caractères.</small>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 py-2" [disabled]="!eleveForm.form.valid || enChargement">
-              <span *ngIf="!enChargement">Créer le compte</span>
+            <button type="submit" class="btn btn-primary w-100" [disabled]="enChargement">
+              <span *ngIf="!enChargement">Inscrire l'élève</span>
               <span *ngIf="enChargement">Création en cours...</span>
             </button>
           </form>
