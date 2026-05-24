@@ -15,7 +15,13 @@
             <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
               <i class="bi bi-shield-lock text-primary fs-3"></i>
             </div>
-            <h4 class="fw-bold">Connexion Admin</h4>
+            <h4 class="fw-bold">
+              <span *ngIf="roleActuel === 'admin-systeme'">Connexion Admin Système</span>
+  
+              <span *ngIf="roleActuel === 'parent'">Espace Parent / Étudiant</span>
+
+              <span *ngIf="roleActuel === 'ecole'">Espace Établissement Scolaire</span>
+            </h4>
             <p class="text-muted small">Veuillez saisir vos identifiants pour continuer</p>
           </div>
 

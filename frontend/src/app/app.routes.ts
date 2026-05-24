@@ -12,6 +12,7 @@ import { DossiersComponent } from './admin-metier/dossiers/dossiers';
 // École
 import { DashboardComponent as EcoleDashboard } from './ecole/dashboard/dashboard';
 import { DocumentsComponent } from './ecole/documents/documents';
+import { GestionElevesComponent } from './ecole/gestion-eleves/gestion-eleves';
 
 // Ministère
 import { DashboardComponent as MinistereDashboard } from './ministere/dashboard/dashboard';
@@ -51,4 +52,6 @@ export const routes: Routes = [
   { path: 'parent/notes', component: NotesComponent },
 
   { path: 'admin-metier/dossiers/:id', component: DossiersComponent },
+
+  { path: 'ecole/eleves', component: GestionElevesComponent },
 ];

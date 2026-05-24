@@ -13,9 +13,9 @@ export class LoginComponent {
   constructor(private router: Router) {}
   
   selectProfile(profil: string) {
-    if (profil === 'admin-systeme') {
+    if (profil === 'admin-systeme' || profil === 'parent' || profil === 'ecole') {
       // Si on clique sur Admin Système, on va vers le formulaire de login 
-      this.router.navigate(['/authentification']);
+      this.router.navigate(['/authentification'], { queryParams: { role: profil } });
     } else {
       // Pour les autres cartes, on garde le comportement par défaut (vers les dashboards)
       this.router.navigate(['/' + profil]);

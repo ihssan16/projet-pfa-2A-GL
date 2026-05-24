@@ -5,11 +5,17 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Utilisateur
 from .serializers import UtilisateurSerializer, CreerUtilisateurSerializer, ProfilSerializer
+from rest_framework.permissions import BasePermission
 
 
 class EstAdminSys(IsAuthenticated):
     def has_permission(self, request, view):
         return super().has_permission(request, view) and request.user.role == 'ADMIN_SYS'
+
+
+class EstAdminOuEcole(BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated and request.user.role in ['ADMIN_SYS', 'ECOLE'])
 
 
 class LoginView(APIView):
@@ -48,6 +54,7 @@ class ProfilView(APIView):
 
 class ListeUtilisateursView(APIView):
     permission_classes = [EstAdminSys]
+    permission_classes = [EstAdminOuEcole]
 
     def get(self, request):
         role = request.query_params.get('role', None)
