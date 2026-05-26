@@ -86,31 +86,52 @@
           </tr>
         </thead>
         <tbody>
-          @if (chargement) {
-            <tr><td colspan="5" class="text-center text-muted py-4">Chargement...</td></tr>
+  @if (chargement) {
+    <tr>
+      <td colspan="5" class="text-center text-muted py-4">
+        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+        Chargement en cours...
+      </td>
+    </tr>
+  }
+
+  @if (!chargement && (!utilisateurs || utilisateurs.length === 0)) {
+    <tr>
+      <td colspan="5" class="text-center text-muted py-4">
+        <i class="bi bi-exclamation-circle me-2"></i>Aucun utilisateur trouvé pour ce rôle.
+      </td>
+    </tr>
+  }
+
+  @if (!chargement && utilisateurs && utilisateurs.length > 0) {
+    @for (u of utilisateurs; track $index) { 
+      <tr>
+        <td class="ps-4 fw-semibold">
+          {{ u.first_name || '' }} {{ u.last_name || u.nom || '' }}
+        </td>
+        <td class="text-muted">{{ u.email }}</td>
+        <td>
+          <span class="badge bg-primary bg-opacity-10 text-primary">
+            {{ getRoleLabel(u.role) }}
+          </span>
+        </td>
+        <td>
+          <span class="badge" [ngClass]="u.is_active ? 'bg-success' : 'bg-secondary'">
+            {{ u.is_active ? 'Actif' : 'Inactif' }}
+          </span>
+        </td>
+        <td>
+          @if (u.is_active && u.role !== 'ADMIN_SYS') {
+            <button class="btn btn-sm btn-outline-danger" (click)="desactiver(u)">
+              <i class="bi bi-trash"></i>
+            </button>
           }
-          @for (u of utilisateurs; track u.id) {
-            <tr>
-              <td class="ps-4 fw-semibold">{{ u.first_name }} {{ u.last_name }}</td>
-              <td class="text-muted">{{ u.email }}</td>
-              <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ getRoleLabel(u.role) }}</span></td>
-              <td>
-                @if (u.is_active) {
-                  <span class="badge bg-success">Actif</span>
-                } @else {
-                  <span class="badge bg-secondary">Inactif</span>
-                }
-              </td>
-              <td>
-                @if (u.is_active && u.role !== 'ADMIN_SYS') {
-                  <button class="btn btn-sm btn-outline-danger" (click)="desactiver(u)">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
+        </td>
+      </tr>
+    }
+  }
+</tbody>
+
       </table>
     </div>
   </div>

@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core'; // 1. Import ajouté ici
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../auth.service';
@@ -23,7 +23,7 @@ export class GestionUtilisateursComponent implements OnInit {
     { value: 'ADMIN_METIER',    label: 'Admin Métier' },
     { value: 'ECOLE',           label: 'École Privée' },
     { value: 'MINISTERE',       label: 'Ministère' },
-    { value: 'PARENT_ETUDIANT', label: 'Parent / Étudiant' },
+    { value: 'ETUDIANT',        label: 'Parent / Étudiant' },
   ];
 
   nouveauUser = {
@@ -31,18 +31,53 @@ export class GestionUtilisateursComponent implements OnInit {
     role: 'ECOLE', password: ''
   };
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService, 
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private cdr: ChangeDetectorRef 
+  ) {}
 
-  ngOnInit() { this.chargerUtilisateurs(); }
+  ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => {
+        this.chargerUtilisateurs();
+      });
+    } else {
+      this.chargement = false;
+    }
+  }
 
   chargerUtilisateurs() {
     this.chargement = true;
+    this.erreur = '';
+    this.utilisateurs = [];
+
     this.authService.listerUtilisateurs(this.filtreRole || undefined).subscribe({
-      next: (data) => { this.utilisateurs = data; this.chargement = false; },
-      error: (err) => {
-        if (err.status === 401 || err.status === 403) this.router.navigate(['/login']);
-        this.erreur = 'Erreur de chargement.';
+      next: (data: any) => {
+        console.log("🕵️ Données brutes de Django :", data);
+        
+        if (data && data.results) {
+          this.utilisateurs = data.results;
+        } else if (Array.isArray(data)) {
+          this.utilisateurs = data;
+        } else {
+          this.utilisateurs = [];
+        }
+        
         this.chargement = false;
+        
+        this.cdr.detectChanges(); 
+      },
+      error: (err) => {
+        console.error('Erreur de requête :', err);
+        if (err.status === 401 || err.status === 403) {
+          this.router.navigate(['/login']);
+        } else {
+          this.erreur = 'Erreur de chargement.';
+        }
+        this.chargement = false;
+        this.cdr.detectChanges(); // Forcer aussi l'affichage du message d'erreur
       }
     });
   }
@@ -58,6 +93,7 @@ export class GestionUtilisateursComponent implements OnInit {
       },
       error: (err) => {
         this.erreur = err.error?.email?.[0] || err.error?.password?.[0] || 'Erreur lors de la création.';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -65,8 +101,14 @@ export class GestionUtilisateursComponent implements OnInit {
   desactiver(user: any) {
     if (!confirm(`Désactiver le compte de ${user.email} ?`)) return;
     this.authService.desactiverUtilisateur(user.id).subscribe({
-      next: () => { this.succes = 'Compte désactivé.'; this.chargerUtilisateurs(); },
-      error: () => { this.erreur = 'Erreur lors de la désactivation.'; }
+      next: () => { 
+        this.succes = 'Compte désactivé.'; 
+        this.chargerUtilisateurs(); 
+      },
+      error: () => { 
+        this.erreur = 'Erreur lors de la désactivation.'; 
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -76,10 +118,13 @@ export class GestionUtilisateursComponent implements OnInit {
       'ADMIN_METIER':    'Admin Métier',
       'ECOLE':           'École Privée',
       'MINISTERE':       'Ministère',
-      'PARENT_ETUDIANT': 'Parent / Étudiant',
+      'ETUDIANT':        'Parent / Étudiant',
     };
     return map[role] || role;
   }
 
-  logout() { this.authService.logout(); this.router.navigate(['/login']); }
+  logout() { 
+    this.authService.logout(); 
+    this.router.navigate(['/login']); 
+  }
 }
