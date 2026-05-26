@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'; 
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; // 1. Import ajouté
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router'; 
@@ -22,7 +22,8 @@ export class AuthentificationComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute 
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef 
   ) {}
 
   ngOnInit() {
@@ -34,34 +35,51 @@ export class AuthentificationComponent implements OnInit {
   }
 
   onSubmit() {
-  this.messageErreur = '';
-  this.enChargement = true;
+    this.messageErreur = '';
+    this.enChargement = true;
 
-  this.authService.login(this.email, this.mot_de_passe).subscribe({
-    next: (reponse: any) => {
-      this.enChargement = false;
+    this.authService.login(this.email, this.mot_de_passe).subscribe({
+      next: (reponse: any) => {
+        this.enChargement = false;
 
-      // Redirection basée sur le rôle retourné par le backend
-      const routes: any = {
-        'ADMIN_SYS':       '/admin-systeme',
-        'ADMIN_METIER':    '/admin-metier',
-        'ECOLE':           '/ecole',
-        'MINISTERE':       '/ministere',
-        'PARENT_ETUDIANT': '/parent',
-      };
-      const route = routes[reponse.role] || '/login';
-      this.router.navigate([route]);
-    },
-    error: (erreur: any) => {
-      this.enChargement = false;
-      if (erreur.status === 401) {
-        this.messageErreur = 'Email ou mot de passe incorrect.';
-      } else if (erreur.status === 403) {
-        this.messageErreur = 'Compte désactivé. Contactez l\'administrateur.';
-      } else {
-        this.messageErreur = 'Erreur de connexion au serveur backend.';
+        const urlActuelle = this.router.url.toLowerCase();
+        const roleUtilisateur = reponse.role ? reponse.role.trim().toUpperCase() : ''; 
+
+        let roleExige = '';
+        if (urlActuelle.includes('ministere') || this.roleActuel === 'ministere') roleExige = 'MINISTERE';
+        else if (urlActuelle.includes('ecole') || this.roleActuel === 'ecole') roleExige = 'ECOLE';
+        else if (urlActuelle.includes('admin-metier') || this.roleActuel === 'admin-metier') roleExige = 'ADMIN_METIER';
+        else if (urlActuelle.includes('admin-systeme') || this.roleActuel === 'admin-systeme') roleExige = 'ADMIN_SYS';
+        else if (urlActuelle.includes('parent') || this.roleActuel === 'parent') roleExige = 'ETUDIANT';
+        
+        if (roleExige !== '' && roleUtilisateur !== roleExige) {
+          this.authService.logout(); 
+          this.messageErreur = `Accès refusé : Ce portail d'authentification n'est pas destiné à votre type de compte.`;
+          this.cdr.detectChanges(); 
+          return; 
+        }
+
+        const routes: any = {
+          'ADMIN_SYS':       '/admin-systeme',
+          'ADMIN_METIER':    '/admin-metier',
+          'ECOLE':           '/ecole',
+          'MINISTERE':       '/ministere',
+          'ETUDIANT':        '/parent'
+        };
+        
+        this.router.navigate([routes[roleUtilisateur] || '/login']);
+      },
+      error: (erreur: any) => {
+        this.enChargement = false;
+        if (erreur.status === 401) {
+          this.messageErreur = 'Email ou mot de passe incorrect.';
+        } else if (erreur.status === 403) {
+          this.messageErreur = 'Compte désactivé. Contactez l\'administrateur.';
+        } else {
+          this.messageErreur = 'Erreur de connexion au serveur backend.';
+        }
+        this.cdr.detectChanges(); 
       }
-    }
-  });
-}
+    });
+  }
 }
