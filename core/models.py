@@ -28,9 +28,6 @@ class Utilisateur(AbstractUser):
         return f"{self.email} - {self.get_role_display()}"
     
 
-
-# ... (Gardez votre modèle Utilisateur existant au-dessus) ...
-
 class Ecole(models.Model):
     # On relie cette école à un compte utilisateur de type "ECOLE"
     utilisateur = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, related_name='profil_ecole', null=True, blank=True)
@@ -38,7 +35,7 @@ class Ecole(models.Model):
     # Données venant du dataset Public_School_Characteristics
     nom = models.CharField(max_length=255)
     ville = models.CharField(max_length=100, blank=True, null=True)
-    niveaux = models.CharField(max_length=100, blank=True, null=True) # Ex: Primaire, Collège
+    niveaux = models.CharField(max_length=100, blank=True, null=True) 
     
     # On peut garder quelques stats basiques
     capacite_eleves = models.IntegerField(default=0)
