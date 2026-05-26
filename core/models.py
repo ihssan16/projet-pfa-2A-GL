@@ -26,3 +26,39 @@ class Utilisateur(AbstractUser):
 
     def __str__(self):
         return f"{self.email} - {self.get_role_display()}"
+    
+
+
+# ... (Gardez votre modèle Utilisateur existant au-dessus) ...
+
+class Ecole(models.Model):
+    # On relie cette école à un compte utilisateur de type "ECOLE"
+    utilisateur = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, related_name='profil_ecole', null=True, blank=True)
+    
+    # Données venant du dataset Public_School_Characteristics
+    nom = models.CharField(max_length=255)
+    ville = models.CharField(max_length=100, blank=True, null=True)
+    niveaux = models.CharField(max_length=100, blank=True, null=True) # Ex: Primaire, Collège
+    
+    # On peut garder quelques stats basiques
+    capacite_eleves = models.IntegerField(default=0)
+    
+    def __str__(self):
+        return self.nom
+
+class Etudiant(models.Model):
+    # On relie l'étudiant à son école
+    ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name='etudiants', null=True)
+    
+    # Données venant du dataset StudentsPerformance
+    genre = models.CharField(max_length=20, blank=True, null=True)
+    education_parent = models.CharField(max_length=100, blank=True, null=True) # parental level of education
+    lunch_plan = models.CharField(max_length=50, blank=True, null=True)
+    
+    # Notes des examens
+    note_math = models.IntegerField(default=0)
+    note_lecture = models.IntegerField(default=0)
+    note_ecriture = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Étudiant ({self.genre}) - Math: {self.note_math}"
