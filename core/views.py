@@ -1,10 +1,11 @@
+from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Utilisateur
-from .serializers import UtilisateurSerializer, CreerUtilisateurSerializer, ProfilSerializer
+from .models import Utilisateur, Ecole, Etudiant
+from .serializers import UtilisateurSerializer, CreerUtilisateurSerializer, ProfilSerializer, EcoleSerializer, EtudiantSerializer
 from rest_framework.permissions import BasePermission
 
 
@@ -103,3 +104,14 @@ class DetailUtilisateurView(APIView):
         user.is_active = False
         user.save()
         return Response({'detail': 'Compte désactivé.'})
+
+
+# On utilise ReadOnlyModelViewSet car pour l'instant, le dashboard ne fait que LIRE les données
+class EcoleViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Ecole.objects.all()
+    serializer_class = EcoleSerializer
+    # permission_classes = [IsAuthenticated] # Optionnel : décommentez pour sécuriser l'API plus tard
+
+class EtudiantViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Etudiant.objects.all()
+    serializer_class = EtudiantSerializer

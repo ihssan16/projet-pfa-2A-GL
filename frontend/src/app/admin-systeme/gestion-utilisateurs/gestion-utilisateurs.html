@@ -1,6 +1,4 @@
 <div class="container-fluid py-4 px-4">
-
-  <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h4 class="fw-bold mb-1">Gestion Utilisateurs</h4>
@@ -12,7 +10,6 @@
     </button>
   </div>
 
-  <!-- Alertes -->
   @if (succes) {
     <div class="alert alert-success">✓ {{ succes }}</div>
   }
@@ -20,7 +17,6 @@
     <div class="alert alert-danger">✗ {{ erreur }}</div>
   }
 
-  <!-- Formulaire création -->
   @if (afficherFormulaire) {
     <div class="card border-0 shadow-sm rounded-4 mb-4">
       <div class="card-body p-4">
@@ -50,6 +46,37 @@
               }
             </select>
           </div>
+
+          @if (nouveauUser.role === 'ECOLE') {
+            <div class="col-md-12 mt-3">
+              <h6 class="fw-bold mb-2 text-primary border-bottom pb-2">Informations de la nouvelle école</h6>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-muted">Nom de l'établissement</label>
+              <input type="text" class="form-control" [(ngModel)]="nouveauUser.ecole_nom" placeholder="Ex: École Al Andalous"/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-muted">Ville</label>
+              <input type="text" class="form-control" [(ngModel)]="nouveauUser.ecole_ville" placeholder="Ex: Casablanca"/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-muted">Niveaux</label>
+              <input type="text" class="form-control" [(ngModel)]="nouveauUser.ecole_niveaux" placeholder="Ex: Primaire, Collège..."/>
+            </div>
+          }
+
+          @if (nouveauUser.role === 'ETUDIANT') {
+            <div class="col-md-12 mt-3">
+              <label class="form-label small text-muted">Établissement rattaché (Données de la base)</label>
+              <select class="form-select border-primary" [(ngModel)]="nouveauUser.ecole_id">
+                <option value="">-- Sélectionner une école dans la base --</option>
+                @for (ecole of ecolesDisponibles; track ecole.id) {
+                  <option [value]="ecole.id">{{ ecole.nom }} ({{ ecole.ville }})</option>
+                }
+              </select>
+            </div>
+          }
+
         </div>
         <div class="d-flex justify-content-end gap-2 mt-3">
           <button class="btn btn-outline-secondary" (click)="afficherFormulaire = false">Annuler</button>
@@ -62,7 +89,6 @@
     </div>
   }
 
-  <!-- Filtres -->
   <div class="d-flex gap-2 mb-3 flex-wrap">
     <button class="btn btn-sm" [ngClass]="filtreRole==='' ? 'btn-primary' : 'btn-outline-secondary'"
       (click)="filtreRole=''; chargerUtilisateurs()">Tous</button>
@@ -72,7 +98,6 @@
     }
   </div>
 
-  <!-- Table -->
   <div class="card border-0 shadow-sm rounded-4">
     <div class="card-body p-0">
       <table class="table table-hover mb-0">
@@ -81,14 +106,14 @@
             <th class="ps-4">Nom</th>
             <th>Email</th>
             <th>Rôle</th>
-            <th>Statut</th>
+            <th>Établissement</th> <th>Statut</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
   @if (chargement) {
     <tr>
-      <td colspan="5" class="text-center text-muted py-4">
+      <td colspan="6" class="text-center text-muted py-4">
         <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
         Chargement en cours...
       </td>
@@ -97,7 +122,7 @@
 
   @if (!chargement && (!utilisateurs || utilisateurs.length === 0)) {
     <tr>
-      <td colspan="5" class="text-center text-muted py-4">
+      <td colspan="6" class="text-center text-muted py-4">
         <i class="bi bi-exclamation-circle me-2"></i>Aucun utilisateur trouvé pour ce rôle.
       </td>
     </tr>
@@ -115,6 +140,11 @@
             {{ getRoleLabel(u.role) }}
           </span>
         </td>
+        
+        <td class="text-muted small">
+          <i class="bi bi-building me-1"></i> {{ u.ecole_nom || 'Aucun' }}
+        </td>
+
         <td>
           <span class="badge" [ngClass]="u.is_active ? 'bg-success' : 'bg-secondary'">
             {{ u.is_active ? 'Actif' : 'Inactif' }}
@@ -131,12 +161,10 @@
     }
   }
 </tbody>
-
       </table>
     </div>
   </div>
 
-  <!-- Retour -->
   <div class="mt-3">
     <a routerLink="/admin-systeme" class="btn btn-outline-secondary btn-sm">
       ← Retour au dashboard
