@@ -67,23 +67,37 @@
                 </tr>
               </thead>
               <tbody>
+                <tr *ngIf="chargement">
+                  <td colspan="6" class="text-center py-4 text-muted">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                    Chargement de l'aperçu...
+                  </td>
+                </tr>
+
                 <tr *ngFor="let user of utilisateurs">
-                  <td class="fw-bold">{{ user.nom }}</td>
+                  <td class="fw-bold">
+                    {{ user.first_name || '' }} {{ user.last_name || user.nom || '' }}
+                  </td>
                   <td>
-                    <span class="badge {{ getStatutBadgeClass(user.statut) }}">
-                      {{ user.statut }}
+                    <span class="badge" [ngClass]="user.is_active ? 'bg-success' : 'bg-secondary'">
+                      {{ user.is_active ? 'Actif' : 'Inactif' }}
                     </span>
                   </td>
-                  <td>{{ user.email }}</td>
-                  <td>{{ user.role }}</td>
-                  <td>{{ user.activite }}</td>
+                  <td class="text-muted">{{ user.email }}</td>
                   <td>
-                    <button class="btn btn-sm btn-outline-primary me-1">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger">
-                      <i class="bi bi-trash"></i>
-                    </button>
+                    <span class="badge bg-primary bg-opacity-10 text-primary">
+                      {{ getRoleLabel(user.role) }}
+                    </span>
+                  </td>
+                  <td>
+                    <small class="text-muted"><i class="bi bi-clock me-1"></i>Récemment</small>
+                  </td>
+                  <td>
+                    <div class="btn-group">
+                      <button class="btn btn-sm btn-outline-primary" title="Éditer">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
