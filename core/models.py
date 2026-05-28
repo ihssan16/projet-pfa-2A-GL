@@ -45,11 +45,12 @@ class Ecole(models.Model):
 
 class Etudiant(models.Model):
     # On relie l'étudiant à son école
+    utilisateur = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, related_name='profil_etudiant', null=True, blank=True)
+
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name='etudiants', null=True)
-    
-    # Données venant du dataset StudentsPerformance
     genre = models.CharField(max_length=20, blank=True, null=True)
-    education_parent = models.CharField(max_length=100, blank=True, null=True) # parental level of education
+
+    education_parent = models.CharField(max_length=100, blank=True, null=True) 
     lunch_plan = models.CharField(max_length=50, blank=True, null=True)
     
     # Notes des examens
