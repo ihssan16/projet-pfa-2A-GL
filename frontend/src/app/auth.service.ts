@@ -64,4 +64,9 @@ export class AuthService {
   desactiverUtilisateur(id: string): Observable<any> {
     return this.http.delete(`http://localhost:8000/api/utilisateurs/${id}/`, this.getHeaders());
   }
+
+  supprimerUtilisateur(userId: number) {
+    const headers = this.getHeaders();
+    return this.http.delete(`http://localhost:8000/api/utilisateurs/${userId}/`, this.getHeaders());
+  }
 }

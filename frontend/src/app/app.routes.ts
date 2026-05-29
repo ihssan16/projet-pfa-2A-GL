@@ -3,7 +3,7 @@ import { LoginComponent } from './login/login';
 
 // Admin Système
 import { DashboardComponent as AdminSystemeDashboard } from './admin-systeme/dashboard/dashboard';
-//import { GestionUtilisateursComponent } from './admin-systeme/gestion-utilisateurs/gestion-utilisateurs';
+import { HistoriqueComponent } from './admin-systeme/dashboard/historique/historique';
 
 // Admin Métier
 import { DashboardComponent as AdminMetierDashboard } from './admin-metier/dashboard/dashboard';
@@ -35,6 +35,7 @@ export const routes: Routes = [
   // Admin Système
   { path: 'admin-systeme', component: AdminSystemeDashboard },
   { path: 'admin-systeme/utilisateurs', component: GestionUtilisateursComponent },
+  { path: 'admin-systeme/historique', component: HistoriqueComponent },
   
   // Admin Métier
   { path: 'admin-metier', component: AdminMetierDashboard },

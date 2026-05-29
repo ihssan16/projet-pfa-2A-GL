@@ -1,0 +1,60 @@
+<div class="container-fluid py-4 px-4">
+  
+  <div class="d-flex align-items-center mb-4">
+    <a routerLink="/admin-systeme" class="btn btn-outline-secondary me-3">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+      <h4 class="fw-bold mb-1">Journal d'activité complet</h4>
+      <p class="text-muted small mb-0">Historique des actions utilisateurs et système</p>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">Événement</th>
+            <th>Date & Heure</th>
+            <th>Détail / Cible</th>
+            <th class="text-end pe-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr *ngIf="chargement">
+            <td colspan="4" class="text-center py-5 text-muted">
+              <div class="spinner-border text-primary mb-2" role="status"></div>
+              <div>Chargement des journaux...</div>
+            </td>
+          </tr>
+
+          <tr *ngFor="let log of historiqueComplet">
+            <td class="ps-4">
+              <div class="d-flex align-items-center">
+                <div class="bg-{{ log.color }} bg-opacity-10 rounded p-2 me-3">
+                  <i class="bi bi-{{ log.icon }} text-{{ log.color }}"></i>
+                </div>
+                <span class="fw-semibold">{{ log.action }}</span>
+              </div>
+            </td>
+            <td class="text-muted small">
+              <i class="bi bi-calendar3 me-1"></i> {{ log.date }} <br>
+              <i class="bi bi-clock me-1"></i> {{ log.heure }}
+            </td>
+            <td class="text-muted">
+              {{ log.detail }}
+            </td>
+            <td class="text-end pe-4">
+              <button class="btn btn-sm btn-light" title="Voir les détails bruts">
+                <i class="bi bi-three-dots"></i>
+              </button>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

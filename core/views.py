@@ -101,9 +101,10 @@ class DetailUtilisateurView(APIView):
         user = self.get_user(pk)
         if not user:
             return Response({'detail': 'Introuvable.'}, status=status.HTTP_404_NOT_FOUND)
-        user.is_active = False
-        user.save()
-        return Response({'detail': 'Compte désactivé.'})
+        
+        user.delete()
+        
+        return Response({'detail': 'Compte supprimé définitivement.'}, status=status.HTTP_204_NO_CONTENT)
 
 
 # On utilise ReadOnlyModelViewSet car pour l'instant, le dashboard ne fait que LIRE les données
