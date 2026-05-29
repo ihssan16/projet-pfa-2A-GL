@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../auth.service';
 import { HttpClient, HttpClientModule } from '@angular/common/http'; 
+import { LogService } from '../../services/log'; 
 
 @Component({
   selector: 'app-dashboard',
@@ -35,16 +36,22 @@ export class DashboardComponent implements OnInit {
     private authService: AuthService,
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private logService: LogService 
   ) {}
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.chargerPreviewUtilisateurs();
       this.chargerStatistiques(); 
+      this.chargerActivitesRecentes(); 
     } else {
       this.chargement = false;
     }
+  }
+
+  chargerActivitesRecentes() {
+    this.activites = this.logService.getLogs().slice(0, 3);
   }
 
   chargerStatistiques() {
@@ -81,27 +88,14 @@ export class DashboardComponent implements OnInit {
     this.chargement = true;
     this.authService.listerUtilisateurs().subscribe({
       next: (data: any) => {
-        const tousLesUsers = data.results ? data.results : (Array.isArray(data) ? data : []);
-        
+        let tousLesUsers = data.results ? data.results : (Array.isArray(data) ? data : []);
+        tousLesUsers.sort((a: any, b: any) => {
+          const dateA = a.last_login ? new Date(a.last_login).getTime() : 0;
+          const dateB = b.last_login ? new Date(b.last_login).getTime() : 0;
+          return dateB - dateA;
+        });
+
         this.utilisateurs = tousLesUsers.slice(0, 5);
-
-        this.activites = this.utilisateurs.slice(0, 4).map(user => {
-          return {
-            action: 'Création compte ' + this.getRoleLabel(user.role),
-            detail: user.ecole_nom ? user.ecole_nom : user.email,
-            heure: 'Nouveau',
-            icon: 'person-plus',
-            color: 'primary'
-          };
-        });
-
-        this.activites.push({
-            action: 'Sauvegarde système',
-            detail: 'Base de données Neon.tech',
-            heure: 'Aujourd\'hui',
-            icon: 'cloud-check',
-            color: 'success'
-        });
 
         this.chargement = false;
         this.cdr.detectChanges();
@@ -114,7 +108,6 @@ export class DashboardComponent implements OnInit {
       }
     });
   }
-
   getRoleLabel(role: string): string {
     const map: any = {
       'ADMIN_SYS':       'Admin Système',

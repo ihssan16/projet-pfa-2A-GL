@@ -6,7 +6,7 @@ class UtilisateurSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Utilisateur
-        fields = ['id', 'email', 'first_name', 'last_name', 'role', 'is_active', 'ecole_nom']
+        fields = ['id', 'email', 'first_name', 'last_name', 'role', 'is_active', 'last_login', 'ecole_nom']
 
     def get_ecole_nom(self, obj):
         if hasattr(obj, 'profil_ecole') and obj.profil_ecole:

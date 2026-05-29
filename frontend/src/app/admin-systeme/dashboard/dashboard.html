@@ -59,12 +59,11 @@
                   <th>Email</th>
                   <th>Rôle</th>
                   <th>Dernière activité</th>
-                  <th>Actions</th>
-                </tr>
+                  </tr>
               </thead>
               <tbody>
                 <tr *ngIf="chargement">
-                  <td colspan="6" class="text-center py-4 text-muted">
+                  <td colspan="5" class="text-center py-4 text-muted">
                     <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
                     Chargement de l'aperçu...
                   </td>
@@ -86,16 +85,17 @@
                     </span>
                   </td>
                   <td>
-                    <small class="text-muted"><i class="bi bi-clock me-1"></i>Récemment</small>
+                    <small class="text-muted">
+                      <i class="bi bi-clock me-1"></i>
+                      <span *ngIf="user.last_login">
+                        {{ user.last_login | date:'dd/MM HH:mm' }}
+                      </span>
+                      <span *ngIf="!user.last_login">
+                        Jamais
+                      </span>
+                    </small>
                   </td>
-                  <td>
-                    <div class="btn-group">
-                      <button class="btn btn-sm btn-outline-primary" title="Éditer">
-                        <i class="bi bi-pencil"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                  </tr>
               </tbody>
             </table>
           </div>
@@ -110,16 +110,16 @@
         </div>
         <div class="card-body p-0">
           <div class="list-group list-group-flush">
-            <div class="list-group-item border-0 py-3" *ngFor="let activite of activites">
+            <div class="list-group-item border-0 py-3" *ngFor="let log of activites">
               <div class="d-flex">
-                <div class="bg-{{ activite.color }} bg-opacity-10 rounded p-2 me-3">
-                  <i class="bi bi-{{ activite.icon }} text-{{ activite.color }}"></i>
+                <div class="bg-{{ log.type }}-subtle rounded p-2 me-3">
+                  <i class="bi bi-{{ log.icone }} text-{{ log.type }}"></i>
                 </div>
                 <div class="flex-grow-1">
-                  <div class="fw-bold">{{ activite.action }}</div>
-                  <small class="text-muted">{{ activite.detail }}</small>
+                  <div class="fw-bold">{{ log.action }}</div>
+                  <small class="text-muted">{{ log.cible }}</small>
                 </div>
-                <small class="text-muted">{{ activite.heure }}</small>
+                <small class="text-muted ms-2">{{ log.date | date:'HH:mm' }}</small>
               </div>
             </div>
           </div>
