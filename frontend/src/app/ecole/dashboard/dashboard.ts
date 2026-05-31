@@ -51,11 +51,12 @@ export class DashboardComponentEcole implements OnInit {
   }
 
   chargerDonneesCloud() {
-
-    const token = localStorage.getItem('access_token');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
+    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+    
+    let headers = new HttpHeaders();
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
 
     this.http.get('http://localhost:8000/api/profil/', { headers: headers }).subscribe({
       next: (profil: any) => {
@@ -65,15 +66,17 @@ export class DashboardComponentEcole implements OnInit {
           niveaux: profil.ecole_niveaux || 'Niveaux non spécifiés'
         };
 
+        this.stats[0].label = 'Élèves inscrits'; 
+        this.stats[0].value = profil.nombre_etudiants || 0;
+        this.stats[0].change = `Capacité: ${profil.ecole_capacite || 0}`;
+
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error("Erreur de connexion au profil Django", err);
-        this.ecole.nom = "Erreur de chargement";
         if (err.status === 401) {
           this.logout(); 
         }
-        this.cdr.detectChanges();
       }
     });
   }

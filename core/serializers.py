@@ -58,26 +58,37 @@ class ProfilSerializer(serializers.ModelSerializer):
     ecole_nom = serializers.SerializerMethodField()
     ecole_ville = serializers.SerializerMethodField()
     ecole_niveaux = serializers.SerializerMethodField()
+    
+    ecole_capacite = serializers.SerializerMethodField()
+    nombre_etudiants = serializers.SerializerMethodField()
 
     class Meta:
         model = Utilisateur
-        fields = ['id', 'email', 'first_name', 'last_name', 'role', 'role_display', 'is_active', 'ecole_nom', 'ecole_ville', 'ecole_niveaux']
+        fields = ['id', 'email', 'first_name', 'last_name', 'role', 'role_display', 'is_active', 
+                  'ecole_nom', 'ecole_ville', 'ecole_niveaux', 'ecole_capacite', 'nombre_etudiants']
 
     def get_ecole_nom(self, obj):
-        if hasattr(obj, 'profil_ecole') and obj.profil_ecole:
-            return obj.profil_ecole.nom
+        if hasattr(obj, 'profil_ecole') and obj.profil_ecole: return obj.profil_ecole.nom
         return None
 
     def get_ecole_ville(self, obj):
-        if hasattr(obj, 'profil_ecole') and obj.profil_ecole:
-            return obj.profil_ecole.ville
+        if hasattr(obj, 'profil_ecole') and obj.profil_ecole: return obj.profil_ecole.ville
         return None
 
     def get_ecole_niveaux(self, obj):
-        if hasattr(obj, 'profil_ecole') and obj.profil_ecole:
-            return obj.profil_ecole.niveaux
+        if hasattr(obj, 'profil_ecole') and obj.profil_ecole: return obj.profil_ecole.niveaux
         return None
 
+    def get_ecole_capacite(self, obj):
+        if hasattr(obj, 'profil_ecole') and obj.profil_ecole:
+            return obj.profil_ecole.capacite_eleves
+        return 0
+
+    def get_nombre_etudiants(self, obj):
+        if hasattr(obj, 'profil_ecole') and obj.profil_ecole:
+            return obj.profil_ecole.etudiants.count()
+        return 0
+    
 
 class EcoleSerializer(serializers.ModelSerializer):
     class Meta:

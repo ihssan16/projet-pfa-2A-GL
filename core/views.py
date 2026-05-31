@@ -107,12 +107,22 @@ class DetailUtilisateurView(APIView):
         return Response({'detail': 'Compte supprimé définitivement.'}, status=status.HTTP_204_NO_CONTENT)
 
 
-# On utilise ReadOnlyModelViewSet car pour l'instant, le dashboard ne fait que LIRE les données
 class EcoleViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ecole.objects.all()
     serializer_class = EcoleSerializer
-    # permission_classes = [IsAuthenticated] # Optionnel : décommentez pour sécuriser l'API plus tard
 
 class EtudiantViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Etudiant.objects.all()
     serializer_class = EtudiantSerializer
+
+class MesElevesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        eleves = Utilisateur.objects.filter(
+            role='ETUDIANT',
+            profil_etudiant__ecole__utilisateur=request.user
+        ).order_by('-date_joined') 
+        
+        serializer = UtilisateurSerializer(eleves, many=True)
+        return Response(serializer.data)

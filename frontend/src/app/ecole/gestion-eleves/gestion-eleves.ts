@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core'; 
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders, HttpClientModule } from '@angular/common/http'; 
@@ -11,7 +11,7 @@ import { RouterLink } from '@angular/router';
   templateUrl: './gestion-eleves.html',
   styleUrls: ['./gestion-eleves.css']
 })
-export class GestionElevesComponent {
+export class GestionElevesComponent implements OnInit {
   nouvelEleve = {
     first_name: '',
     last_name: '',
@@ -24,7 +24,28 @@ export class GestionElevesComponent {
   messageSucces: string = '';
   messageErreur: string = '';
 
+  elevesInscrits: any[] = [];
+
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+
+
+  ngOnInit() {
+    this.chargerEleves();
+  }
+
+  chargerEleves() {
+    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    this.http.get('http://localhost:8000/api/mes-eleves/', { headers }).subscribe({
+      next: (data: any) => {
+        this.elevesInscrits = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error("Erreur chargement élèves :", err)
+    });
+  }
+
 
   creerEleve() {
     console.log('--- DÉBUT DE LA CRÉATION ---');
@@ -49,6 +70,8 @@ export class GestionElevesComponent {
         this.enChargement = false;
         this.messageSucces = 'Le compte de l\'élève a été créé avec succès !';
         this.nouvelEleve = { first_name: '', last_name: '', email: '', password: '', role: 'ETUDIANT' };
+        
+        this.chargerEleves();
         
         this.cdr.detectChanges(); 
       },
