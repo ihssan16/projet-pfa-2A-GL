@@ -54,9 +54,29 @@ class CreerUtilisateurSerializer(serializers.ModelSerializer):
 
 class ProfilSerializer(serializers.ModelSerializer):
     role_display = serializers.CharField(source='get_role_display', read_only=True)
+    
+    ecole_nom = serializers.SerializerMethodField()
+    ecole_ville = serializers.SerializerMethodField()
+    ecole_niveaux = serializers.SerializerMethodField()
+
     class Meta:
         model = Utilisateur
-        fields = ['id', 'email', 'first_name', 'last_name', 'role', 'role_display', 'is_active']
+        fields = ['id', 'email', 'first_name', 'last_name', 'role', 'role_display', 'is_active', 'ecole_nom', 'ecole_ville', 'ecole_niveaux']
+
+    def get_ecole_nom(self, obj):
+        if hasattr(obj, 'profil_ecole') and obj.profil_ecole:
+            return obj.profil_ecole.nom
+        return None
+
+    def get_ecole_ville(self, obj):
+        if hasattr(obj, 'profil_ecole') and obj.profil_ecole:
+            return obj.profil_ecole.ville
+        return None
+
+    def get_ecole_niveaux(self, obj):
+        if hasattr(obj, 'profil_ecole') and obj.profil_ecole:
+            return obj.profil_ecole.niveaux
+        return None
 
 
 class EcoleSerializer(serializers.ModelSerializer):

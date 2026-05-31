@@ -1,13 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpClientModule } from '@angular/common/http'; 
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-gestion-eleves',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, HttpClientModule], 
   templateUrl: './gestion-eleves.html',
   styleUrls: ['./gestion-eleves.css']
 })
@@ -24,7 +24,7 @@ export class GestionElevesComponent {
   messageSucces: string = '';
   messageErreur: string = '';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
   creerEleve() {
     console.log('--- DÉBUT DE LA CRÉATION ---');
@@ -34,7 +34,7 @@ export class GestionElevesComponent {
     this.messageSucces = '';
     this.messageErreur = '';
 
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
     console.log('2. Token récupéré :', token ? 'Oui, le token est là' : 'NON ! LE TOKEN EST VIDE');
 
     const headers = new HttpHeaders({
@@ -49,15 +49,22 @@ export class GestionElevesComponent {
         this.enChargement = false;
         this.messageSucces = 'Le compte de l\'élève a été créé avec succès !';
         this.nouvelEleve = { first_name: '', last_name: '', email: '', password: '', role: 'ETUDIANT' };
+        
+        this.cdr.detectChanges(); 
       },
       error: (erreur: any) => {
-        console.error('4. ERREUR CRITIQUE reçue :', erreur);
+        console.error('4. ERREUR reçue :', erreur);
         this.enChargement = false;
-        if (erreur.status === 400) {
-          this.messageErreur = 'Erreur : Vérifiez les champs (l\'email existe peut-être déjà).';
+        
+        if (erreur.error && typeof erreur.error === 'object') {
+           this.messageErreur = 'Erreur Django : ' + JSON.stringify(erreur.error);
+        } else if (erreur.status === 403) {
+           this.messageErreur = "Erreur 403 : L'école n'a pas la permission de créer un élève (à vérifier dans Django).";
         } else {
-          this.messageErreur = 'Erreur serveur. Regardez la console.';
+           this.messageErreur = 'Erreur serveur. Regardez la console F12.';
         }
+        
+        this.cdr.detectChanges(); 
       }
     });
   }
