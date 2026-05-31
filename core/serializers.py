@@ -40,18 +40,27 @@ class CreerUtilisateurSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
 
+        # On récupère la requête pour savoir qui est connecté
+        request = self.context.get('request')
+
         if user.role == 'ECOLE' and ecole_nom:
             Ecole.objects.create(utilisateur=user, nom=ecole_nom, ville=ecole_ville, niveaux=ecole_niveaux)
             
-        elif user.role == 'ETUDIANT' and ecole_id:
-            try:
-                ecole = Ecole.objects.get(id=ecole_id)
-                Etudiant.objects.create(utilisateur=user, ecole=ecole)
-            except Ecole.DoesNotExist:
-                pass
+        elif user.role == 'ETUDIANT':
+            # ⚡ NOUVELLE LOGIQUE : Si l'utilisateur connecté est une école, on attache l'élève automatiquement
+            if request and hasattr(request.user, 'profil_ecole') and request.user.profil_ecole:
+                Etudiant.objects.create(utilisateur=user, ecole=request.user.profil_ecole)
+            
+            # (On garde l'ancien comportement au cas où l'Admin Système voudrait créer un élève via un ID)
+            elif ecole_id:
+                try:
+                    ecole = Ecole.objects.get(id=ecole_id)
+                    Etudiant.objects.create(utilisateur=user, ecole=ecole)
+                except Ecole.DoesNotExist:
+                    pass
 
         return user
-
+    
 class ProfilSerializer(serializers.ModelSerializer):
     role_display = serializers.CharField(source='get_role_display', read_only=True)
     
