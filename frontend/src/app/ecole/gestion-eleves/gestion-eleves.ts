@@ -1,4 +1,4 @@
-import { Component, afterNextRender, ChangeDetectorRef } from '@angular/core'; // ⚡ Ajout de ChangeDetectorRef
+import { Component, afterNextRender, ChangeDetectorRef } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders, HttpClientModule } from '@angular/common/http';
