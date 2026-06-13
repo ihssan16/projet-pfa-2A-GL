@@ -1,72 +1,92 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../auth.service';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
-export class DashboardComponent {
-  constructor(private router: Router) {}
+export class DashboardComponent implements OnInit {
 
-  // Données des cartes KPI
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
+
+  chargement = true;
+
   stats = [
-    { label: 'Dossiers en attente', value: 23, color: 'warning', icon: 'hourglass-split', change: '+5' },
-    { label: 'Dossiers validés', value: 142, color: 'success', icon: 'check-circle', change: '+12' },
-    { label: 'Dossiers refusés', value: 8, color: 'danger', icon: 'x-circle', change: '-2' },
-    { label: 'Total établissements', value: 173, color: 'info', icon: 'building', change: '+8' }
+    { id: 'ecoles',    label: 'Total établissements', value: '...', color: 'info',    icon: 'building'   },
+    { id: 'etudiants', label: 'Total étudiants',       value: '...', color: 'primary', icon: 'people'     },
+    { id: 'math',      label: 'Moy. Mathématiques',    value: '...', color: 'success', icon: 'calculator' },
+    { id: 'lecture',   label: 'Moy. Lecture',          value: '...', color: 'warning', icon: 'book'       },
   ];
 
-  // Données du tableau
-  dossiers = [
-    { ref: 'DOS-2025-001', etablissement: 'Groupe Scolaire Al Wifaq', ville: 'Casablanca', type: 'Inscription', date: '12/05/2025', documents: 12, statut: 'En attente' },
-    { ref: 'DOS-2025-002', etablissement: 'École Privée Les Étoiles', ville: 'Rabat', type: 'Renouvellement', date: '11/05/2025', documents: 8, statut: 'En attente' },
-    { ref: 'DOS-2025-003', etablissement: 'Lycée Excellence', ville: 'Marrakech', type: 'Modification', date: '10/05/2025', documents: 15, statut: 'Validé' },
-    { ref: 'DOS-2025-004', etablissement: 'Collège Modern School', ville: 'Fès', type: 'Inscription', date: '09/05/2025', documents: 6, statut: 'Refusé' },
-    { ref: 'DOS-2025-005', etablissement: 'École Al Andalous', ville: 'Casablanca', type: 'Renouvellement', date: '08/05/2025', documents: 9, statut: 'En attente' }
-  ];
+  parVille:        any[] = [];
+  parNiveaux:      any[] = [];
+  dernieresEcoles: any[] = [];
+  moyennes = { math: 0, lecture: 0, ecriture: 0 };
 
-  // Données des régions
-  regions = [
-    { name: 'Casablanca-Settat', value: 42 },
-    { name: 'Rabat-Salé-Kénitra', value: 38 },
-    { name: 'Fès-Meknès', value: 31 },
-    { name: 'Marrakech-Safi', value: 27 }
-  ];
-
-  // Données des types d'enseignement
-  enseignements = [
-    { type: 'Primaire', count: 65, percentage: 38 },
-    { type: 'Collège', count: 48, percentage: 28 },
-    { type: 'Lycée', count: 42, percentage: 24 },
-    { type: 'Technique', count: 18, percentage: 10 }
-  ];
-
-  // Activité récente
-  activites = [
-    { action: 'Dossier validé', etablissement: 'École Al Wifaq', heure: '14:25', icon: 'check-circle', color: 'success' },
-    { action: 'Nouveau dossier', etablissement: 'École Les Étoiles', heure: '13:45', icon: 'file-plus', color: 'info' },
-    { action: 'Dossier refusé', etablissement: 'Collège Modern', heure: '12:30', icon: 'x-circle', color: 'danger' }
-  ];
-
-  getStatusBadgeClass(statut: string): string {
-    switch(statut) {
-      case 'Validé': return 'bg-success';
-      case 'Refusé': return 'bg-danger';
-      default: return 'bg-warning';
+  ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.chargerStats();
+    } else {
+      this.chargement = false;
     }
   }
 
-  voirDetails(ref: string) {
-    console.log('Voir détails du dossier:', ref);
-    // Rediriger vers la page de détails
-    this.router.navigate(['/admin-metier/dossiers', ref]);
+  chargerStats() {
+    this.http.get<any>(
+      'http://localhost:8000/api/stats-admin-metier/',
+      this.authService['getHeaders']()
+    ).subscribe({
+      next: (data) => {
+        this.mettreAJourStat('ecoles',    String(data.total_ecoles));
+        this.mettreAJourStat('etudiants', String(data.total_etudiants));
+        this.mettreAJourStat('math',      String(data.moyennes.math));
+        this.mettreAJourStat('lecture',   String(data.moyennes.lecture));
+        this.parVille        = data.par_ville;
+        this.parNiveaux      = data.par_niveaux;
+        this.dernieresEcoles = data.dernieres_ecoles;
+        this.moyennes        = data.moyennes;
+        this.chargement = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur stats admin métier', err);
+        if (err.status === 401) this.logout();
+        this.chargement = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  mettreAJourStat(id: string, valeur: string) {
+    const i = this.stats.findIndex(s => s.id === id);
+    if (i !== -1) {
+      this.stats[i].value = valeur;
+      this.cdr.detectChanges();
+    }
+  }
+
+  getMaxVille(): number {
+    return Math.max(...this.parVille.map((v: any) => v.count), 1);
+  }
+
+  getMaxNiveaux(): number {
+    return Math.max(...this.parNiveaux.map((n: any) => n.count), 1);
   }
 
   logout() {
+    this.authService.logout();
     this.router.navigate(['/login']);
   }
 }

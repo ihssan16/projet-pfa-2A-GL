@@ -9,6 +9,8 @@ from .serializers import UtilisateurSerializer, CreerUtilisateurSerializer, Prof
 from rest_framework.permissions import BasePermission
 
 
+from django.db.models import Count, Avg
+
 class EstAdminSys(IsAuthenticated):
     def has_permission(self, request, view):
         return super().has_permission(request, view) and request.user.role == 'ADMIN_SYS'
@@ -126,3 +128,53 @@ class MesElevesView(APIView):
         
         serializer = UtilisateurSerializer(eleves, many=True)
         return Response(serializer.data)
+
+from django.db.models import Count, Avg
+
+class StatsAdminMetierView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        total_ecoles = Ecole.objects.count()
+        total_etudiants = Etudiant.objects.count()
+
+        # Répartition par niveaux
+        par_niveaux = (
+            Ecole.objects
+            .values('niveaux')
+            .annotate(count=Count('id'))
+            .order_by('-count')[:5]
+        )
+
+        # Répartition par ville (top 5)
+        par_ville = (
+            Ecole.objects
+            .values('ville')
+            .annotate(count=Count('id'))
+            .order_by('-count')[:5]
+        )
+
+        # Moyennes des notes
+        moyennes = Etudiant.objects.aggregate(
+            moy_math=Avg('note_math'),
+            moy_lecture=Avg('note_lecture'),
+            moy_ecriture=Avg('note_ecriture'),
+        )
+
+        # Dernières écoles
+        dernieres_ecoles = Ecole.objects.order_by('-id')[:5].values(
+            'id', 'nom', 'ville', 'niveaux', 'capacite_eleves'
+        )
+
+        return Response({
+            'total_ecoles': total_ecoles,
+            'total_etudiants': total_etudiants,
+            'par_niveaux': list(par_niveaux),
+            'par_ville': list(par_ville),
+            'moyennes': {
+                'math':     round(moyennes['moy_math'] or 0, 1),
+                'lecture':  round(moyennes['moy_lecture'] or 0, 1),
+                'ecriture': round(moyennes['moy_ecriture'] or 0, 1),
+            },
+            'dernieres_ecoles': list(dernieres_ecoles),
+        })   

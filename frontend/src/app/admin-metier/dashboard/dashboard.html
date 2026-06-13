@@ -1,16 +1,26 @@
 <div class="container-fluid px-4 py-4">
+
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h1 class="display-6 fw-bold mb-0">Dashboard Admin Métier</h1>
-      <p class="text-muted">Validation et suivi des dossiers</p>
+      <p class="text-muted">Données en temps réel depuis la base de données</p>
     </div>
     <div class="dropdown">
       <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
         <i class="bi bi-person-circle"></i> Admin
       </button>
       <ul class="dropdown-menu">
-        <li><a class="dropdown-item" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Déconnexion</a></li>
+        <li><a class="dropdown-item" routerLink="/admin-metier/dossiers">
+          <i class="bi bi-folder"></i> Dossiers
+        </a></li>
+        <li><a class="dropdown-item" routerLink="/admin-metier/statistiques">
+          <i class="bi bi-bar-chart"></i> Statistiques
+        </a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" style="cursor:pointer" (click)="logout()">
+          <i class="bi bi-box-arrow-right"></i> Déconnexion
+        </a></li>
       </ul>
     </div>
   </div>
@@ -24,7 +34,6 @@
             <div>
               <p class="text-muted mb-1">{{ stat.label }}</p>
               <h2 class="display-5 fw-bold mb-0">{{ stat.value }}</h2>
-              <small class="text-success">{{ stat.change }}</small>
             </div>
             <div class="bg-{{ stat.color }} bg-opacity-10 rounded p-3">
               <i class="bi bi-{{ stat.icon }} fs-2 text-{{ stat.color }}"></i>
@@ -35,118 +44,152 @@
     </div>
   </div>
 
-  <!-- Tableau des dossiers -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-0 pt-4">
-      <div class="d-flex justify-content-between align-items-center">
-        <h5 class="fw-bold mb-0">Dossiers à traiter</h5>
-        <input type="text" class="form-control w-25" placeholder="Rechercher...">
+  <!-- Graphiques -->
+  <div class="row g-4 mb-4">
+
+    <!-- Par ville -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-0 pt-4">
+          <h5 class="fw-bold mb-0">Top villes</h5>
+          <small class="text-muted">Établissements par ville</small>
+        </div>
+        <div class="card-body">
+          <div *ngIf="chargement" class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+            Chargement...
+          </div>
+          <div *ngFor="let v of parVille" class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="fw-semibold">{{ v.ville }}</span>
+              <span class="badge bg-info">{{ v.count }}</span>
+            </div>
+            <div class="progress" style="height:8px">
+              <div class="progress-bar bg-info"
+                   [style.width]="(v.count / getMaxVille()) * 100 + '%'">
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th>Référence</th>
-              <th>Établissement</th>
-              <th>Ville</th>
-              <th>Type</th>
-              <th>Date dépôt</th>
-              <th>Documents</th>
-              <th>Statut</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let dossier of dossiers">
-              <td class="fw-bold">{{ dossier.ref }}</td>
-              <td>{{ dossier.etablissement }}</td>
-              <td>{{ dossier.ville }}</td>
-              <td>{{ dossier.type }}</td>
-              <td>{{ dossier.date }}</td>
-              <td>{{ dossier.documents }} fichiers</td>
-              <td>
-                <span class="badge {{ getStatusBadgeClass(dossier.statut) }}">
-                  {{ dossier.statut }}
-                </span>
-              </td>
-              <td>
-                <button class="btn btn-sm btn-outline-primary" (click)="voirDetails(dossier.ref)">
-                  <i class="bi bi-eye"></i> Détails
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+
+    <!-- Par niveaux -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-0 pt-4">
+          <h5 class="fw-bold mb-0">Niveaux d'enseignement</h5>
+          <small class="text-muted">Répartition des établissements</small>
+        </div>
+        <div class="card-body">
+          <div *ngIf="chargement" class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-success me-2"></div>
+            Chargement...
+          </div>
+          <div *ngFor="let n of parNiveaux" class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="fw-semibold">{{ n.niveaux || 'Non défini' }}</span>
+              <span class="badge bg-success">{{ n.count }}</span>
+            </div>
+            <div class="progress" style="height:8px">
+              <div class="progress-bar bg-success"
+                   [style.width]="(n.count / getMaxNiveaux()) * 100 + '%'">
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Graphiques et stats -->
+  <!-- Moyennes + Dernières écoles -->
   <div class="row g-4">
-    <!-- Répartition par région -->
-    <div class="col-md-6">
+
+    <!-- Moyennes -->
+    <div class="col-md-4">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-white border-0 pt-4">
-          <h5 class="fw-bold mb-0">Répartition par région</h5>
+          <h5 class="fw-bold mb-0">Moyennes des notes</h5>
+          <small class="text-muted">Sur l'ensemble des étudiants</small>
         </div>
         <div class="card-body">
-          <div *ngFor="let region of regions" class="mb-3">
+          <div *ngIf="chargement" class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-warning me-2"></div>
+            Chargement...
+          </div>
+          <div class="mb-3">
             <div class="d-flex justify-content-between mb-1">
-              <span>{{ region.name }}</span>
-              <span class="fw-bold">{{ region.value }}</span>
+              <span>Mathématiques</span>
+              <strong class="text-success">{{ moyennes.math }}/100</strong>
             </div>
-            <div class="progress">
-              <div class="progress-bar bg-info" 
-                   [style.width]="(region.value / 180) * 100 + '%'">
-              </div>
+            <div class="progress" style="height:10px">
+              <div class="progress-bar bg-success" [style.width]="moyennes.math + '%'"></div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span>Lecture</span>
+              <strong class="text-info">{{ moyennes.lecture }}/100</strong>
+            </div>
+            <div class="progress" style="height:10px">
+              <div class="progress-bar bg-info" [style.width]="moyennes.lecture + '%'"></div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span>Écriture</span>
+              <strong class="text-warning">{{ moyennes.ecriture }}/100</strong>
+            </div>
+            <div class="progress" style="height:10px">
+              <div class="progress-bar bg-warning" [style.width]="moyennes.ecriture + '%'"></div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Type d'enseignement -->
-    <div class="col-md-3">
+    <!-- Dernières écoles -->
+    <div class="col-md-8">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-white border-0 pt-4">
-          <h5 class="fw-bold mb-0">Type d'enseignement</h5>
-        </div>
-        <div class="card-body">
-          <div *ngFor="let enseignement of enseignements" class="mb-3">
-            <div class="d-flex justify-content-between">
-              <span>{{ enseignement.type }}</span>
-              <span class="fw-bold">{{ enseignement.count }}</span>
-            </div>
-            <div class="progress">
-              <div class="progress-bar bg-success" 
-                   [style.width]="enseignement.percentage + '%'">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Activité récente -->
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-0 pt-4">
-          <h5 class="fw-bold mb-0">Activité récente</h5>
-        </div>
-        <div class="card-body">
-          <div *ngFor="let activite of activites" class="d-flex align-items-center mb-3">
-            <div class="bg-{{ activite.color }} bg-opacity-10 rounded p-2 me-3">
-              <i class="bi bi-{{ activite.icon }} text-{{ activite.color }}"></i>
-            </div>
+          <div class="d-flex justify-content-between align-items-center">
             <div>
-              <div class="fw-bold">{{ activite.action }}</div>
-              <small class="text-muted">{{ activite.etablissement }} - {{ activite.heure }}</small>
+              <h5 class="fw-bold mb-0">Derniers établissements</h5>
+              <small class="text-muted">5 derniers enregistrés</small>
             </div>
+            <a routerLink="/admin-metier/dossiers" class="btn btn-primary btn-sm">
+              Voir tous <i class="bi bi-arrow-right"></i>
+            </a>
           </div>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3">Nom</th>
+                <th>Ville</th>
+                <th>Niveau</th>
+                <th>Capacité</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="chargement">
+                <td colspan="4" class="text-center py-4 text-muted">
+                  <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                  Chargement...
+                </td>
+              </tr>
+              <tr *ngFor="let ecole of dernieresEcoles">
+                <td class="ps-3 fw-semibold">{{ ecole.nom }}</td>
+                <td>{{ ecole.ville || '—' }}</td>
+                <td><span class="badge bg-secondary">{{ ecole.niveaux || 'N/A' }}</span></td>
+                <td>{{ ecole.capacite_eleves }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
+
   </div>
 </div>
