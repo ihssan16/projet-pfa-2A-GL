@@ -121,10 +121,12 @@ class ProfilSerializer(serializers.ModelSerializer):
                 "ecole": {
                     "nom": obj.profil_etudiant.ecole.nom if obj.profil_etudiant.ecole else None
                 },
-                "niveau": getattr(obj.profil_etudiant, 'niveau', 'Non assigné') 
+                "niveau": getattr(obj.profil_etudiant, 'niveau', 'Non assigné'),
+                "note_math": getattr(obj.profil_etudiant, 'note_math', 0),
+                "note_lecture": getattr(obj.profil_etudiant, 'note_lecture', 0),
+                "note_ecriture": getattr(obj.profil_etudiant, 'note_ecriture', 0)
             }
         return None
-    
 
 class EcoleSerializer(serializers.ModelSerializer):
     class Meta:

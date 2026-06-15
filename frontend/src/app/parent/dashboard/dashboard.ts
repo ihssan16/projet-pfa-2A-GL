@@ -19,19 +19,13 @@ export class DashboardComponent {
   };
 
   stats = [
-    { label: 'Moyenne générale', value: '15.2', suffix: '/20', icon: 'graph-up', color: 'primary' },
+    { label: 'Moyenne générale', value: '...', suffix: '/20', icon: 'graph-up', color: 'primary' },
     { label: 'Rang en classe', value: '7', suffix: '/34', icon: 'trophy', color: 'success' },
     { label: 'Absences', value: '2', suffix: 'ce mois', icon: 'calendar-x', color: 'warning' },
     { label: 'Devoirs', value: '5', suffix: 'à venir', icon: 'book', color: 'info' }
   ];
 
-  notes = [
-    { matiere: 'Mathématiques', coef: 4, note: 16.5, mention: 'Excellent', couleur: 'success' },
-    { matiere: 'Français', coef: 3, note: 14, mention: 'Bien', couleur: 'info' },
-    { matiere: 'Sciences Physiques', coef: 3, note: 15.5, mention: 'Bien', couleur: 'info' },
-    { matiere: 'Anglais', coef: 2, note: 17, mention: 'Excellent', couleur: 'success' },
-    { matiere: 'Histoire-Géo', coef: 2, note: 13.5, mention: 'Assez bien', couleur: 'warning' }
-  ];
+  notes: any[] = [];
 
   emploiTemps = [
     { heure: '08:00', matiere: 'Mathématiques', salle: 'A12', professeur: 'M. Benali' },
@@ -73,13 +67,26 @@ export class DashboardComponent {
 
     this.http.get('http://localhost:8000/api/profil/', { headers }).subscribe({
       next: (data: any) => {
-        console.log("Données de l'élève reçues :", data); 
-
         this.etudiant.nom = `${data.first_name} ${data.last_name}`;
 
         if (data.profil_etudiant) {
           this.etudiant.ecole = data.profil_etudiant.ecole?.nom || 'École non renseignée';
           this.etudiant.classe = data.profil_etudiant.niveau || 'Classe non renseignée'; 
+          
+          // EXTRACTION ET CONVERSION DES NOTES (de /100 à /20)
+          const math20 = (data.profil_etudiant.note_math || 0) / 5;
+          const lecture20 = (data.profil_etudiant.note_lecture || 0) / 5;
+          const ecriture20 = (data.profil_etudiant.note_ecriture || 0) / 5;
+
+          this.notes = [
+            { matiere: 'Mathématiques', coef: 4, note: math20, mention: this.calculerMention(math20), couleur: this.calculerCouleurTheme(math20) },
+            { matiere: 'Lecture', coef: 3, note: lecture20, mention: this.calculerMention(lecture20), couleur: this.calculerCouleurTheme(lecture20) },
+            { matiere: 'Écriture', coef: 3, note: ecriture20, mention: this.calculerMention(ecriture20), couleur: this.calculerCouleurTheme(ecriture20) }
+          ];
+
+          const totalPoints = (math20 * 4) + (lecture20 * 3) + (ecriture20 * 3);
+          const moyenne = totalPoints / 10;
+          this.stats[0].value = moyenne.toFixed(1); 
         }
 
         this.cdr.detectChanges();
@@ -90,11 +97,28 @@ export class DashboardComponent {
     });
   }
 
+  calculerMention(noteSur20: number): string {
+    if (noteSur20 >= 16) return 'Excellent';
+    if (noteSur20 >= 14) return 'Bien';
+    if (noteSur20 >= 12) return 'Assez bien';
+    if (noteSur20 >= 10) return 'Passable';
+    return 'Insuffisant';
+  }
+
+  calculerCouleurTheme(noteSur20: number): string {
+    if (noteSur20 >= 16) return 'success';
+    if (noteSur20 >= 14) return 'info';
+    if (noteSur20 >= 12) return 'warning';
+    return 'danger';
+  }
+
   getMentionClass(mention: string): string {
     switch(mention) {
       case 'Excellent': return 'text-success';
       case 'Bien': return 'text-info';
-      default: return 'text-warning';
+      case 'Assez bien': return 'text-warning';
+      case 'Passable': return 'text-warning';
+      default: return 'text-danger';
     }
   }
 
@@ -114,7 +138,6 @@ export class DashboardComponent {
   }
 
   voirBulletin(trimestre: string) {
-    console.log('Voir bulletin:', trimestre);
     alert(`Téléchargement du ${trimestre}`);
   }
 
