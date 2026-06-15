@@ -13,7 +13,7 @@ import { RouterLink } from '@angular/router';
 })
 export class GestionElevesComponent {
   
-  nouvelEleve = { first_name: '', last_name: '', email: '', password: '', role: 'ETUDIANT' };
+  nouvelEleve = { first_name: '', last_name: '', email: '', password: '', role: 'ETUDIANT', etudiant_niveau: '' };
   enChargement: boolean = false;
   messageSucces: string = '';
   messageErreur: string = '';
@@ -133,7 +133,8 @@ export class GestionElevesComponent {
       last_name: eleve.last_name,
       email: eleve.email,
       password: '', 
-      role: 'ETUDIANT'
+      role: 'ETUDIANT',
+      etudiant_niveau: eleve.profil_etudiant?.niveau || '' 
     };
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -142,6 +143,7 @@ export class GestionElevesComponent {
   annulerEdition() {
     this.modeEdition = false;
     this.idEleveEnEdition = null;
-    this.nouvelEleve = { first_name: '', last_name: '', email: '', password: '', role: 'ETUDIANT' };
+    this.nouvelEleve = { first_name: '', last_name: '', email: '', password: '', role: 'ETUDIANT', etudiant_niveau: '' };
   }
+  
 }
