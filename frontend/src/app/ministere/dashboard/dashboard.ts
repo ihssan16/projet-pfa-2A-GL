@@ -12,6 +12,7 @@ interface Demande {
   type: string;
   date_depot: string;
   statut: string;
+  nb_fichiers?: number;
   commentaire?: string;
 }
 
@@ -135,6 +136,38 @@ export class DashboardComponent implements OnInit {
         }
       });
     }
+  }
+
+  // NOUVELLE MÉTHODE POUR TÉLÉCHARGER LES DOCUMENTS
+  telechargerDocument(demande: Demande) {
+    if (!demande.nb_fichiers || demande.nb_fichiers === 0) {
+      alert('Aucun document disponible pour cette demande');
+      return;
+    }
+    
+    this.http.get(
+      `http://localhost:8000/api/demandes/${demande.id}/documents/`,
+      this.getHeaders()
+    ).subscribe({
+      next: (response: any) => {
+        if (response.documents && response.documents.length > 0) {
+          response.documents.forEach((doc: any) => {
+            const link = document.createElement('a');
+            link.href = `http://localhost:8000/api/demandes/${demande.id}/download/${encodeURIComponent(doc.name)}`;
+            link.download = doc.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          });
+        } else {
+          alert('Aucun document disponible');
+        }
+      },
+      error: (err) => {
+        console.error('Erreur téléchargement', err);
+        alert('Erreur lors du téléchargement');
+      }
+    });
   }
 
   getConformiteClass(conformite: number): string {

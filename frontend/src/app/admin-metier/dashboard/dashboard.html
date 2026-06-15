@@ -109,7 +109,7 @@
               <th>Ville</th>
               <th>Type</th>
               <th>Date dépôt</th>
-              <th>Documents</th>
+              <th class="text-center">Télécharger</th>
               <th>Statut</th>
               <th class="text-center">Actions</th>
             </tr>
@@ -119,18 +119,18 @@
               <td colspan="8" class="text-center py-4 text-muted">
                 <i class="bi bi-inbox fs-3"></i>
                 <p class="mb-0">Aucune demande à traiter</p>
-               </td>
-             </tr>
+              </td>
+            </tr>
             <tr *ngFor="let demande of demandes">
               <td class="ps-3 fw-semibold">{{ demande.reference }}</td>
               <td>{{ demande.etablissement }}</td>
               <td>{{ demande.ville }}</td>
               <td><span class="badge bg-secondary">{{ demande.type }}</span></td>
               <td>{{ demande.date_depot | date:'dd/MM/yyyy' }}</td>
-              <td>
-                <span class="text-primary" style="cursor:pointer" (click)="voirDocuments(demande)">
-                  <i class="bi bi-files"></i> {{ demande.nb_fichiers }} fichiers
-                </span>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary" (click)="telechargerDocument(demande)" [disabled]="!demande.nb_fichiers || demande.nb_fichiers === 0" title="Télécharger les documents">
+                  <i class="bi bi-download"></i> Télécharger
+                </button>
               </td>
               <td>
                 <span class="badge" [ngClass]="{

@@ -390,3 +390,4 @@ class DemandeView(APIView):
             'statut': demande.get_statut_display(),
             'demande_id': str(demande.id),
         })
+    

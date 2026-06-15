@@ -166,7 +166,8 @@
                       <th>Établissement</th>
                       <th>Ville</th>
                       <th>Validé par</th>
-                      <th>Actions</th>
+                      <th class="text-center">Télécharger</th>
+                      <th class="text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -175,7 +176,12 @@
                       <td>{{ demande.etablissement }}</td>
                       <td>{{ demande.ville }}</td>
                       <td>Admin Métier</td>
-                      <td>
+                      <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary" (click)="telechargerDocument(demande)" [disabled]="!demande.nb_fichiers || demande.nb_fichiers === 0" title="Télécharger les documents">
+                          <i class="bi bi-download"></i> Télécharger
+                        </button>
+                      </td>
+                      <td class="text-center">
                         <button class="btn btn-sm btn-success me-1" (click)="validerMinistere(demande)" title="Valider définitivement">
                           <i class="bi bi-check-lg"></i> Valider
                         </button>
@@ -185,7 +191,7 @@
                       </td>
                     </tr>
                     <tr *ngIf="demandesMinistere.length === 0">
-                      <td colspan="5" class="text-center text-muted py-3">
+                      <td colspan="6" class="text-center text-muted py-3">
                         Aucun dossier en attente de validation
                       </td>
                     </tr>
