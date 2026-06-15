@@ -87,8 +87,10 @@
                   <td class="text-muted">{{ eleve.email }}</td>
                   <td>
                     <small class="text-muted">
-                      <span *ngIf="eleve.last_login">{{ eleve.last_login | date:'dd/MM/yyyy' }}</span>
-                      <span *ngIf="!eleve.last_login">Jamais</span>
+                      <td>
+                        <span *ngIf="eleve.last_login">{{ eleve.last_login | date:'dd/MM/yyyy HH:mm' }}</span>
+                        <span *ngIf="!eleve.last_login" class="text-muted">Jamais</span>
+                      </td>
                     </small>
                   </td>
                   <td>

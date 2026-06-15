@@ -1,4 +1,5 @@
-from rest_framework import viewsets, generics
+from rest_framework import viewsets
+from django.contrib.auth.models import update_last_login
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -35,6 +36,9 @@ class LoginView(APIView):
             return Response({'detail': 'Email ou mot de passe incorrect.'}, status=status.HTTP_401_UNAUTHORIZED)
         if not user.is_active:
             return Response({'detail': 'Compte désactivé.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        update_last_login(None, user)
+        
         refresh = RefreshToken.for_user(user)
         return Response({
             'access': str(refresh.access_token),
