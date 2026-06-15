@@ -92,8 +92,14 @@
                     </small>
                   </td>
                   <td>
-                    <button class="btn btn-sm btn-outline-primary me-1" title="Éditer"><i class="bi bi-pencil"></i></button>
-                    <button class="btn btn-sm btn-outline-danger" title="Supprimer"><i class="bi bi-trash"></i></button>
+                    <button class="btn btn-sm btn-outline-primary me-1" title="Éditer" 
+                            (click)="editerEleve(eleve)">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" title="Supprimer" 
+                            (click)="supprimerEleve(eleve.id, eleve.last_name, eleve.first_name)">
+                      <i class="bi bi-trash"></i>
+                    </button>
                   </td>
                 </tr>
               </tbody>

@@ -72,4 +72,37 @@ export class GestionElevesComponent {
       }
     });
   }
+
+  supprimerEleve(id: string, nom: string, prenom: string) {
+    const confirmation = confirm(`Êtes-vous sûr de vouloir supprimer le compte de ${prenom} ${nom} ? Cette action est irréversible.`);
+    
+    if (confirmation) {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+      if (!token) return;
+      const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+      this.http.delete(`http://localhost:8000/api/utilisateurs/${id}/`, { headers }).subscribe({
+        next: () => {
+        
+          this.elevesInscrits = this.elevesInscrits.filter(eleve => eleve.id !== id);
+        },
+        error: (err) => {
+          console.error("Erreur lors de la suppression :", err);
+          alert("Une erreur est survenue lors de la suppression.");
+        }
+      });
+    }
+  }
+
+  editerEleve(eleve: any) {
+    this.nouvelEleve = {
+      first_name: eleve.first_name,
+      last_name: eleve.last_name,
+      email: eleve.email,
+      password: '',
+      role: 'ETUDIANT'
+    };
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
