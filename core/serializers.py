@@ -114,17 +114,43 @@ class ProfilSerializer(serializers.ModelSerializer):
         if hasattr(obj, 'profil_ecole') and obj.profil_ecole:
             return obj.profil_ecole.etudiants.count()
         return 0
-    
+
     def get_profil_etudiant(self, obj):
         if hasattr(obj, 'profil_etudiant') and obj.profil_etudiant:
+            etudiant = obj.profil_etudiant
+            
+            math20 = (etudiant.note_math or 0) / 5
+            lecture20 = (etudiant.note_lecture or 0) / 5
+            ecriture20 = (etudiant.note_ecriture or 0) / 5
+            moyenne = ((math20 * 4) + (lecture20 * 3) + (ecriture20 * 3)) / 10
+            
+            rang = 1
+            total_eleves = 1
+            
+            if etudiant.ecole and etudiant.niveau:
+                camarades = Etudiant.objects.filter(ecole=etudiant.ecole, niveau=etudiant.niveau)
+                total_eleves = camarades.count()
+                
+                for c in camarades:
+                    c_math = (c.note_math or 0) / 5
+                    c_lec = (c.note_lecture or 0) / 5
+                    c_ecr = (c.note_ecriture or 0) / 5
+                    c_moy = ((c_math * 4) + (c_lec * 3) + (c_ecr * 3)) / 10
+                    
+                    if c_moy > moyenne:
+                        rang += 1
+
             return {
                 "ecole": {
-                    "nom": obj.profil_etudiant.ecole.nom if obj.profil_etudiant.ecole else None
+                    "nom": etudiant.ecole.nom if etudiant.ecole else None
                 },
-                "niveau": getattr(obj.profil_etudiant, 'niveau', 'Non assigné'),
-                "note_math": getattr(obj.profil_etudiant, 'note_math', 0),
-                "note_lecture": getattr(obj.profil_etudiant, 'note_lecture', 0),
-                "note_ecriture": getattr(obj.profil_etudiant, 'note_ecriture', 0)
+                "niveau": getattr(etudiant, 'niveau', 'Non assigné'),
+                "note_math": etudiant.note_math,
+                "note_lecture": etudiant.note_lecture,
+                "note_ecriture": etudiant.note_ecriture,
+                "moyenne": round(moyenne, 1),
+                "rang": rang,
+                "total_eleves": total_eleves
             }
         return None
 

@@ -73,7 +73,6 @@ export class DashboardComponent {
           this.etudiant.ecole = data.profil_etudiant.ecole?.nom || 'École non renseignée';
           this.etudiant.classe = data.profil_etudiant.niveau || 'Classe non renseignée'; 
           
-          // EXTRACTION ET CONVERSION DES NOTES (de /100 à /20)
           const math20 = (data.profil_etudiant.note_math || 0) / 5;
           const lecture20 = (data.profil_etudiant.note_lecture || 0) / 5;
           const ecriture20 = (data.profil_etudiant.note_ecriture || 0) / 5;
@@ -84,9 +83,14 @@ export class DashboardComponent {
             { matiere: 'Écriture', coef: 3, note: ecriture20, mention: this.calculerMention(ecriture20), couleur: this.calculerCouleurTheme(ecriture20) }
           ];
 
-          const totalPoints = (math20 * 4) + (lecture20 * 3) + (ecriture20 * 3);
-          const moyenne = totalPoints / 10;
-          this.stats[0].value = moyenne.toFixed(1); 
+          const moyenne = data.profil_etudiant.moyenne || 0;
+          const rang = data.profil_etudiant.rang || 1;
+          const totalEleves = data.profil_etudiant.total_eleves || 1;
+
+          this.stats[0].value = moyenne.toString();
+          
+          this.stats[1].value = rang.toString();
+          this.stats[1].suffix = '/' + totalEleves.toString();
         }
 
         this.cdr.detectChanges();
