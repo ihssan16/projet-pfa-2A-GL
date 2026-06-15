@@ -20,6 +20,9 @@ export class GestionElevesComponent {
   
   elevesInscrits: any[] = []; 
 
+  modeEdition: boolean = false;
+  idEleveEnEdition: string | null = null;
+
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
     afterNextRender(() => {
       this.chargerEleves();
@@ -51,26 +54,53 @@ export class GestionElevesComponent {
 
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.post('http://localhost:8000/api/utilisateurs/', this.nouvelEleve, { headers }).subscribe({
-      next: (reponse: any) => {
-        this.enChargement = false;
-        this.messageSucces = 'Le compte de l\'élève a été créé avec succès !';
-        
-        this.elevesInscrits = [reponse, ...this.elevesInscrits];
-        this.nouvelEleve = { first_name: '', last_name: '', email: '', password: '', role: 'ETUDIANT' };
-        
-        this.cdr.detectChanges();
-      },
-      error: (erreur: any) => {
-        this.enChargement = false;
-        if (erreur.error && typeof erreur.error === 'object') {
-           this.messageErreur = 'Erreur : ' + JSON.stringify(erreur.error);
-        } else {
-           this.messageErreur = 'Erreur serveur.';
-        }
-        this.cdr.detectChanges();
+    if (this.modeEdition && this.idEleveEnEdition) {
+      
+      let dataAEnvoyer: any = { ...this.nouvelEleve };
+      if (!dataAEnvoyer.password) {
+        delete dataAEnvoyer.password;
       }
-    });
+
+      this.http.patch(`http://localhost:8000/api/utilisateurs/${this.idEleveEnEdition}/`, dataAEnvoyer, { headers }).subscribe({
+        next: (reponse: any) => {
+          this.enChargement = false;
+          this.messageSucces = 'Les informations de l\'élève ont été mises à jour !';
+          
+          const index = this.elevesInscrits.findIndex(e => e.id === this.idEleveEnEdition);
+          if (index !== -1) {
+            this.elevesInscrits[index] = reponse;
+          }
+          
+          this.annulerEdition(); 
+          this.cdr.detectChanges();
+        },
+        error: (erreur: any) => this.gererErreur(erreur)
+      });
+
+    } 
+    else {
+      this.http.post('http://localhost:8000/api/utilisateurs/', this.nouvelEleve, { headers }).subscribe({
+        next: (reponse: any) => {
+          this.enChargement = false;
+          this.messageSucces = 'Le compte de l\'élève a été créé avec succès !';
+          
+          this.elevesInscrits = [reponse, ...this.elevesInscrits];
+          this.annulerEdition(); 
+          this.cdr.detectChanges();
+        },
+        error: (erreur: any) => this.gererErreur(erreur)
+      });
+    }
+  }
+
+  gererErreur(erreur: any) {
+    this.enChargement = false;
+    if (erreur.error && typeof erreur.error === 'object') {
+       this.messageErreur = 'Erreur : ' + JSON.stringify(erreur.error);
+    } else {
+       this.messageErreur = 'Erreur serveur.';
+    }
+    this.cdr.detectChanges();
   }
 
   supprimerEleve(id: string, nom: string, prenom: string) {
@@ -83,8 +113,8 @@ export class GestionElevesComponent {
 
       this.http.delete(`http://localhost:8000/api/utilisateurs/${id}/`, { headers }).subscribe({
         next: () => {
-        
           this.elevesInscrits = this.elevesInscrits.filter(eleve => eleve.id !== id);
+          this.cdr.detectChanges(); 
         },
         error: (err) => {
           console.error("Erreur lors de la suppression :", err);
@@ -95,14 +125,23 @@ export class GestionElevesComponent {
   }
 
   editerEleve(eleve: any) {
+    this.modeEdition = true;
+    this.idEleveEnEdition = eleve.id;
+
     this.nouvelEleve = {
       first_name: eleve.first_name,
       last_name: eleve.last_name,
       email: eleve.email,
-      password: '',
+      password: '', 
       role: 'ETUDIANT'
     };
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  annulerEdition() {
+    this.modeEdition = false;
+    this.idEleveEnEdition = null;
+    this.nouvelEleve = { first_name: '', last_name: '', email: '', password: '', role: 'ETUDIANT' };
   }
 }

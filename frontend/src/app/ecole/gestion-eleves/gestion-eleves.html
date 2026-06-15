@@ -10,8 +10,10 @@
     <div class="col-lg-4">
       <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
+          
           <h5 class="fw-bold text-primary mb-4">
-            <i class="bi bi-person-plus-fill me-2"></i> Inscrire un nouvel élève
+            <i class="bi" [ngClass]="modeEdition ? 'bi-pencil-square' : 'bi-person-plus-fill'"></i> 
+            <span class="ms-2">{{ modeEdition ? "Modifier l'élève" : "Inscrire un nouvel élève" }}</span>
           </h5>
 
           <div *ngIf="messageSucces" class="alert alert-success">{{ messageSucces }}</div>
@@ -36,14 +38,22 @@
 
             <div class="mb-4">
               <label class="form-label text-muted small">Mot de passe provisoire</label>
-              <input type="password" class="form-control" name="password" [(ngModel)]="nouvelEleve.password" required>
-              <small class="text-muted">Minimum 6 caractères.</small>
+              <input type="password" class="form-control" name="password" [(ngModel)]="nouvelEleve.password" [required]="!modeEdition">
+              <small class="text-muted" *ngIf="!modeEdition">Minimum 6 caractères.</small>
+              <small class="text-warning" *ngIf="modeEdition">Laissez vide pour conserver le mot de passe actuel.</small>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100" [disabled]="enChargement">
-              <span *ngIf="enChargement" class="spinner-border spinner-border-sm me-2"></span>
-              {{ enChargement ? 'Création en cours...' : 'Inscrire l\'élève' }}
-            </button>
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary" [disabled]="enChargement">
+                <span *ngIf="enChargement" class="spinner-border spinner-border-sm me-2"></span>
+                {{ enChargement ? "Traitement..." : (modeEdition ? "Enregistrer les modifications" : "Inscrire l'élève") }}
+              </button>
+              
+              <button type="button" *ngIf="modeEdition" class="btn btn-outline-secondary" (click)="annulerEdition()">
+                Annuler l'édition
+              </button>
+            </div>
+
           </form>
         </div>
       </div>
@@ -85,14 +95,14 @@
                     </div>
                   </td>
                   <td class="text-muted">{{ eleve.email }}</td>
+                  
                   <td>
                     <small class="text-muted">
-                      <td>
-                        <span *ngIf="eleve.last_login">{{ eleve.last_login | date:'dd/MM/yyyy HH:mm' }}</span>
-                        <span *ngIf="!eleve.last_login" class="text-muted">Jamais</span>
-                      </td>
+                      <span *ngIf="eleve.last_login">{{ eleve.last_login | date:'dd/MM/yyyy HH:mm' }}</span>
+                      <span *ngIf="!eleve.last_login">Jamais</span>
                     </small>
                   </td>
+
                   <td>
                     <button class="btn btn-sm btn-outline-primary me-1" title="Éditer" 
                             (click)="editerEleve(eleve)">
