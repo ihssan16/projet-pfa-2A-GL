@@ -33,3 +33,7 @@
   padding: 10px 24px;
   font-weight: 500;
 }
+.modal.show {
+  display: block !important;
+  background-color: rgba(0, 0, 0, 0.5);
+}

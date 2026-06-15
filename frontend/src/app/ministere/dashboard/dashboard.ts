@@ -1,18 +1,33 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+
+interface Demande {
+  id: string;
+  reference: string;
+  etablissement: string;
+  ville: string;
+  type: string;
+  date_depot: string;
+  statut: string;
+  commentaire?: string;
+}
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
-export class DashboardComponent {
-  constructor(private router: Router) {}
+export class DashboardComponent implements OnInit {
+  constructor(
+    private router: Router,
+    private http: HttpClient
+  ) {}
 
-  // Statistiques nationales
   stats = [
     { label: 'Établissements supervisés', value: 173, color: 'primary', icon: 'building', change: '+12%' },
     { label: 'Élèves total', value: '42,847', color: 'success', icon: 'people', change: '+8%' },
@@ -20,7 +35,6 @@ export class DashboardComponent {
     { label: 'Taux de conformité', value: '94%', color: 'warning', icon: 'check-circle', change: '+2%' }
   ];
 
-  // Données par région
   regions = [
     { nom: 'Casablanca-Settat', etablissements: 42, eleves: 11234, conformite: 96 },
     { nom: 'Rabat-Salé-Kénitra', etablissements: 38, eleves: 9876, conformite: 95 },
@@ -30,7 +44,6 @@ export class DashboardComponent {
     { nom: 'Autres régions', etablissements: 12, eleves: 3290, conformite: 88 }
   ];
 
-  // Rapports récents
   rapports = [
     { nom: 'Rapport annuel 2024-2025', type: 'Annuel', pages: 124, date: '12/05/2025', icon: 'file-text' },
     { nom: 'Analyse régionale Casablanca', type: 'Régional', pages: 45, date: '10/05/2025', icon: 'pie-chart' },
@@ -38,11 +51,91 @@ export class DashboardComponent {
     { nom: 'Statistiques trimestrielles Q2', type: 'Trimestriel', pages: 38, date: '05/05/2025', icon: 'graph-up' }
   ];
 
-  // Alertes
   alertes = [
     { type: 'warning', message: 'Documents expirés', detail: '5 établissements', icon: 'exclamation-triangle' },
     { type: 'info', message: 'Nouveaux dossiers', detail: '12 cette semaine', icon: 'file-plus' }
   ];
+
+  demandesMinistere: Demande[] = [];
+  showModal = false;
+
+  ngOnInit() {
+    this.chargerDemandesMinistere();
+  }
+
+  private getHeaders(): { headers: HttpHeaders } {
+    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+    let headers = new HttpHeaders();
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    return { headers: headers };
+  }
+
+  chargerDemandesMinistere() {
+    this.http.get<any[]>(
+      'http://localhost:8000/api/demandes/',
+      this.getHeaders()
+    ).subscribe({
+      next: (data) => {
+        this.demandesMinistere = data.filter(d => d.statut === 'Validé par Admin Métier');
+        console.log('Demandes pour ministère:', this.demandesMinistere);
+      },
+      error: (err) => {
+        console.error('Erreur chargement demandes', err);
+        this.demandesMinistere = [];
+      }
+    });
+  }
+
+  ouvrirModal() {
+    this.showModal = true;
+  }
+
+  fermerModal() {
+    this.showModal = false;
+  }
+
+  validerMinistere(demande: Demande) {
+    if (confirm(`Valider définitivement le dossier ${demande.reference} de ${demande.etablissement} ?`)) {
+      this.http.patch(
+        `http://localhost:8000/api/demandes/${demande.id}/`,
+        { action: 'valider' },
+        this.getHeaders()
+      ).subscribe({
+        next: (response: any) => {
+          alert(`✅ ${response.message}`);
+          this.chargerDemandesMinistere();
+          this.fermerModal();
+        },
+        error: (err) => {
+          console.error('Erreur validation', err);
+          alert('Erreur lors de la validation: ' + (err.error?.error || err.message));
+        }
+      });
+    }
+  }
+
+  refuserMinistere(demande: Demande) {
+    const motif = prompt(`Motif du refus pour ${demande.reference} :`);
+    if (motif !== null) {
+      this.http.patch(
+        `http://localhost:8000/api/demandes/${demande.id}/`,
+        { action: 'refuser', commentaire: motif },
+        this.getHeaders()
+      ).subscribe({
+        next: (response: any) => {
+          alert(`❌ ${response.message}`);
+          this.chargerDemandesMinistere();
+          this.fermerModal();
+        },
+        error: (err) => {
+          console.error('Erreur refus', err);
+          alert('Erreur lors du refus: ' + (err.error?.error || err.message));
+        }
+      });
+    }
+  }
 
   getConformiteClass(conformite: number): string {
     if (conformite >= 95) return 'bg-success';
@@ -51,7 +144,6 @@ export class DashboardComponent {
   }
 
   voirDetailsRegion(region: string) {
-    console.log('Voir détails région:', region);
     this.router.navigate(['/ministere/region', region]);
   }
 
@@ -64,6 +156,9 @@ export class DashboardComponent {
   }
 
   logout() {
+    localStorage.removeItem('access');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     this.router.navigate(['/login']);
   }
 }
