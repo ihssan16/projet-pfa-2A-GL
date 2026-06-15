@@ -36,3 +36,42 @@
 .list-group-item:hover {
   background-color: #f8f9fa;
 }
+.spin {
+  animation: spin 0.5s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.table-responsive {
+  border-radius: 0.5rem;
+}
+
+.badge {
+  padding: 0.35rem 0.65rem;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+.btn-outline-secondary {
+  padding: 10px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.btn-outline-secondary:hover {
+  transform: translateX(5px);
+  background-color: #f8f9fa;
+}
+
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+}

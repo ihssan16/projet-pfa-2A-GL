@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import LoginView, ProfilView, ListeUtilisateursView, DetailUtilisateurView, EcoleViewSet, EtudiantViewSet, MesElevesView, StatsAdminMetierView
-
+from .views import StatistiquesDemandesView, DemandeView
 router = DefaultRouter()
 router.register(r'ecoles', EcoleViewSet)
 router.register(r'etudiants', EtudiantViewSet)
@@ -14,6 +14,10 @@ urlpatterns = [
     path('mes-eleves/', MesElevesView.as_view(), name='mes-eleves'),
     path('stats-admin-metier/', StatsAdminMetierView.as_view(), name='stats-admin-metier'),
     path('', include(router.urls)),
+    path('stats-demandes/', StatistiquesDemandesView.as_view(), name='stats-demandes'),
+    path('demandes/', DemandeView.as_view(), name='demandes-list'),
+    path('demandes/<uuid:demande_id>/', DemandeView.as_view(), name='demande-detail'),
+    path('demandes/<uuid:demande_id>/documents/', DemandeView.as_view(), name='demande-documents'),
+    path('demandes/<uuid:demande_id>/upload/', DemandeView.as_view(), name='demande-upload'),
+    path('', include(router.urls)),
 ]
-
-

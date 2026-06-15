@@ -4,20 +4,13 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h1 class="display-6 fw-bold mb-0">Dashboard Admin Métier</h1>
-      <p class="text-muted">Validation et suivi des dossiers</p>
+      <p class="text-muted">Validation et suivi des dossiers des établissements</p>
     </div>
     <div class="dropdown">
       <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-        <i class="bi bi-person-circle"></i> Admin
+        <i class="bi bi-person-circle"></i> Admin Métier
       </button>
       <ul class="dropdown-menu">
-        <li><a class="dropdown-item" routerLink="/admin-metier/dossiers">
-          <i class="bi bi-folder"></i> Dossiers
-        </a></li>
-        <li><a class="dropdown-item" routerLink="/admin-metier/statistiques">
-          <i class="bi bi-bar-chart"></i> Statistiques
-        </a></li>
-        <li><hr class="dropdown-divider"></li>
         <li><a class="dropdown-item" style="cursor:pointer" (click)="logout()">
           <i class="bi bi-box-arrow-right"></i> Déconnexion
         </a></li>
@@ -25,18 +18,63 @@
     </div>
   </div>
 
-  <!-- Cartes KPI -->
+  <!-- Cartes KPI - Statistiques des demandes -->
   <div class="row g-4 mb-4">
-    <div class="col-md-3" *ngFor="let stat of stats">
-      <div class="card border-0 shadow-sm h-100">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100 bg-warning bg-opacity-10">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start">
             <div>
-              <p class="text-muted mb-1">{{ stat.label }}</p>
-              <h2 class="display-5 fw-bold mb-0">{{ stat.value }}</h2>
+              <p class="text-muted mb-1">Dossiers en attente</p>
+              <h2 class="display-5 fw-bold mb-0">{{ statsDemandes.en_attente }}</h2>
             </div>
-            <div class="bg-{{ stat.color }} bg-opacity-10 rounded p-3">
-              <i class="bi bi-{{ stat.icon }} fs-2 text-{{ stat.color }}"></i>
+            <div class="bg-warning bg-opacity-10 rounded p-3">
+              <i class="bi bi-hourglass-split fs-2 text-warning"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100 bg-info bg-opacity-10">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-muted mb-1">En cours de traitement</p>
+              <h2 class="display-5 fw-bold mb-0">{{ statsDemandes.en_cours }}</h2>
+            </div>
+            <div class="bg-info bg-opacity-10 rounded p-3">
+              <i class="bi bi-arrow-repeat fs-2 text-info"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100 bg-success bg-opacity-10">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-muted mb-1">Validés (en attente Ministère)</p>
+              <h2 class="display-5 fw-bold mb-0">{{ statsDemandes.valides }}</h2>
+            </div>
+            <div class="bg-success bg-opacity-10 rounded p-3">
+              <i class="bi bi-check-circle fs-2 text-success"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100 bg-danger bg-opacity-10">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-muted mb-1">Dossiers refusés</p>
+              <h2 class="display-5 fw-bold mb-0">{{ statsDemandes.refuses }}</h2>
+            </div>
+            <div class="bg-danger bg-opacity-10 rounded p-3">
+              <i class="bi bi-x-circle fs-2 text-danger"></i>
             </div>
           </div>
         </div>
@@ -44,10 +82,90 @@
     </div>
   </div>
 
-  <!-- Graphiques -->
-  <div class="row g-4 mb-4">
+  <!-- Tableau principal : Demandes à traiter -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 pt-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="fw-bold mb-0">Demandes à traiter</h5>
+          <small class="text-muted">Validez les dossiers avant transmission au Ministère</small>
+        </div>
+        <button class="btn btn-primary btn-sm" (click)="chargerDemandes()" [disabled]="chargementDemandes">
+          <i class="bi bi-arrow-repeat" [class.spin]="chargementDemandes"></i> Rafraîchir
+        </button>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div *ngIf="chargementDemandes" class="text-center py-5">
+        <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+        Chargement des demandes...
+      </div>
+      <div class="table-responsive" *ngIf="!chargementDemandes">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Référence</th>
+              <th>Établissement</th>
+              <th>Ville</th>
+              <th>Type</th>
+              <th>Date dépôt</th>
+              <th>Documents</th>
+              <th>Statut</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="demandes.length === 0">
+              <td colspan="8" class="text-center py-4 text-muted">
+                <i class="bi bi-inbox fs-3"></i>
+                <p class="mb-0">Aucune demande à traiter</p>
+               </td>
+             </tr>
+            <tr *ngFor="let demande of demandes">
+              <td class="ps-3 fw-semibold">{{ demande.reference }}</td>
+              <td>{{ demande.etablissement }}</td>
+              <td>{{ demande.ville }}</td>
+              <td><span class="badge bg-secondary">{{ demande.type }}</span></td>
+              <td>{{ demande.date_depot | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <span class="text-primary" style="cursor:pointer" (click)="voirDocuments(demande)">
+                  <i class="bi bi-files"></i> {{ demande.nb_fichiers }} fichiers
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-warning text-dark': demande.statut === 'En attente',
+                  'bg-info text-dark': demande.statut === 'En cours de traitement',
+                  'bg-success': demande.statut === 'Validé par Admin Métier',
+                  'bg-danger': demande.statut === 'Refusé'
+                }">
+                  {{ demande.statut }}
+                </span>
+              </td>
+              <td class="text-center">
+                <div class="btn-group btn-group-sm" role="group">
+                  <button class="btn btn-outline-primary" (click)="voirDetails(demande)" title="Voir détails">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button *ngIf="demande.statut === 'En attente' || demande.statut === 'En cours de traitement'" 
+                          class="btn btn-outline-success" (click)="validerDemande(demande)" title="Valider">
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                  <button *ngIf="demande.statut === 'En attente' || demande.statut === 'En cours de traitement'" 
+                          class="btn btn-outline-danger" (click)="refuserDemande(demande)" title="Refuser">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-    <!-- Par ville -->
+  <!-- Sections secondaires (Top villes et dernières écoles) -->
+  <div class="row g-4">
     <div class="col-md-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-white border-0 pt-4">
@@ -61,95 +179,18 @@
           </div>
           <div *ngFor="let v of parVille" class="mb-3">
             <div class="d-flex justify-content-between mb-1">
-              <span class="fw-semibold">{{ v.ville }}</span>
+              <span class="fw-semibold">{{ v.ville || 'Non défini' }}</span>
               <span class="badge bg-info">{{ v.count }}</span>
             </div>
             <div class="progress" style="height:8px">
-              <div class="progress-bar bg-info"
-                   [style.width]="(v.count / getMaxVille()) * 100 + '%'">
-              </div>
+              <div class="progress-bar bg-info" [style.width]="(v.count / getMaxVille()) * 100 + '%'"></div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Par niveaux -->
     <div class="col-md-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-0 pt-4">
-          <h5 class="fw-bold mb-0">Niveaux d'enseignement</h5>
-          <small class="text-muted">Répartition des établissements</small>
-        </div>
-        <div class="card-body">
-          <div *ngIf="chargement" class="text-center py-3">
-            <div class="spinner-border spinner-border-sm text-success me-2"></div>
-            Chargement...
-          </div>
-          <div *ngFor="let n of parNiveaux" class="mb-3">
-            <div class="d-flex justify-content-between mb-1">
-              <span class="fw-semibold">{{ n.niveaux || 'Non défini' }}</span>
-              <span class="badge bg-success">{{ n.count }}</span>
-            </div>
-            <div class="progress" style="height:8px">
-              <div class="progress-bar bg-success"
-                   [style.width]="(n.count / getMaxNiveaux()) * 100 + '%'">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Moyennes + Dernières écoles -->
-  <div class="row g-4">
-
-    <!-- Moyennes -->
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-0 pt-4">
-          <h5 class="fw-bold mb-0">Moyennes des notes</h5>
-          <small class="text-muted">Sur l'ensemble des étudiants</small>
-        </div>
-        <div class="card-body">
-          <div *ngIf="chargement" class="text-center py-3">
-            <div class="spinner-border spinner-border-sm text-warning me-2"></div>
-            Chargement...
-          </div>
-          <div class="mb-3">
-            <div class="d-flex justify-content-between mb-1">
-              <span>Mathématiques</span>
-              <strong class="text-success">{{ moyennes.math }}/100</strong>
-            </div>
-            <div class="progress" style="height:10px">
-              <div class="progress-bar bg-success" [style.width]="moyennes.math + '%'"></div>
-            </div>
-          </div>
-          <div class="mb-3">
-            <div class="d-flex justify-content-between mb-1">
-              <span>Lecture</span>
-              <strong class="text-info">{{ moyennes.lecture }}/100</strong>
-            </div>
-            <div class="progress" style="height:10px">
-              <div class="progress-bar bg-info" [style.width]="moyennes.lecture + '%'"></div>
-            </div>
-          </div>
-          <div class="mb-3">
-            <div class="d-flex justify-content-between mb-1">
-              <span>Écriture</span>
-              <strong class="text-warning">{{ moyennes.ecriture }}/100</strong>
-            </div>
-            <div class="progress" style="height:10px">
-              <div class="progress-bar bg-warning" [style.width]="moyennes.ecriture + '%'"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Dernières écoles -->
-    <div class="col-md-8">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-white border-0 pt-4">
           <div class="d-flex justify-content-between align-items-center">
@@ -157,9 +198,6 @@
               <h5 class="fw-bold mb-0">Derniers établissements</h5>
               <small class="text-muted">5 derniers enregistrés</small>
             </div>
-            <a routerLink="/admin-metier/dossiers" class="btn btn-primary btn-sm">
-              Voir tous <i class="bi bi-arrow-right"></i>
-            </a>
           </div>
         </div>
         <div class="card-body p-0">
@@ -190,6 +228,5 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>

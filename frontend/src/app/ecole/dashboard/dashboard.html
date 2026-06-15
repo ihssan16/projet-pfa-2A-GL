@@ -1,5 +1,6 @@
 <div class="container-fluid px-4 py-4">
-  <div class="d-flex justify-content-between align-items-start mb-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <div class="d-flex align-items-center mb-2">
         <i class="bi bi-building fs-1 text-primary me-3"></i>
@@ -14,11 +15,12 @@
         <i class="bi bi-person-circle"></i> École
       </button>
       <ul class="dropdown-menu">
-        <li><a class="dropdown-item" style="cursor: pointer;" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Déconnexion</a></li>
+        <li><a class="dropdown-item" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Déconnexion</a></li>
       </ul>
     </div>
   </div>
 
+  <!-- Cartes KPI -->
   <div class="row g-4 mb-4">
     <div class="col-md-3" *ngFor="let stat of stats">
       <div class="card border-0 shadow-sm h-100">
@@ -27,7 +29,6 @@
             <div>
               <p class="text-muted mb-1">{{ stat.label }}</p>
               <h2 class="display-5 fw-bold mb-0">{{ stat.value }}</h2>
-              <small class="text-success">+{{ stat.change }}</small>
             </div>
             <div class="bg-{{ stat.color }} bg-opacity-10 rounded p-3">
               <i class="bi bi-{{ stat.icon }} fs-2 text-{{ stat.color }}"></i>
@@ -38,105 +39,122 @@
     </div>
   </div>
 
-  <div class="row g-4">
-    <div class="col-md-8">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 pt-4">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h5 class="fw-bold mb-0">Mes Documents</h5>
-              <small class="text-muted">Gestion des documents officiels</small>
-            </div>
-            <div>
-              <button class="btn btn-primary btn-sm me-2" (click)="uploadDocument()">
-                <i class="bi bi-cloud-upload"></i> Upload
-              </button>
-              <button class="btn btn-outline-primary btn-sm" (click)="voirTousDocuments()">
-                Voir tous (156)
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>Nom du document</th>
-                  <th>Type</th>
-                  <th>Taille</th>
-                  <th>Date</th>
-                  <th>Statut</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let doc of documents">
-                  <td class="fw-bold">
-                    <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
-                    {{ doc.nom }}
-                  </td>
-                  <td><span class="badge bg-secondary">{{ doc.type }}</span></td>
-                  <td>{{ doc.taille }}</td>
-                  <td>{{ doc.date }}</td>
-                  <td>
-                    <span class="badge {{ getStatutBadgeClass(doc.statut) }}">
-                      {{ doc.statut }}
-                    </span>
-                  </td>
-                  <td>
-                    <button class="btn btn-sm btn-outline-primary me-1">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary">
-                      <i class="bi bi-download"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+  <!-- Carte Nouvelle demande -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 pt-4">
+      <h5 class="fw-bold mb-0">
+        <i class="bi bi-plus-circle text-primary"></i> Nouvelle demande
+      </h5>
+      <small class="text-muted">Soumettre une demande au Ministère</small>
     </div>
-
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-0 pt-4">
-          <div class="d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold mb-0">Notifications</h5>
-            <span class="badge bg-danger rounded-pill">{{ notifications.length }}</span>
-          </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Type de demande</label>
+          <select class="form-select" [(ngModel)]="nouvelleDemande.type">
+            <option value="INSCRIPTION">Inscription</option>
+            <option value="RENOUVELLEMENT">Renouvellement</option>
+            <option value="MODIFICATION">Modification</option>
+            <option value="TRANSFERT">Transfert</option>
+            <option value="AUTRE">Autre (préciser)</option>
+          </select>
         </div>
-        <div class="card-body p-0">
-          <div class="list-group list-group-flush">
-            <div class="list-group-item border-0 py-3" *ngFor="let notif of notifications">
-              <div class="d-flex">
-                <div class="bg-{{ getNotificationClass(notif.type) }} bg-opacity-10 rounded p-2 me-3">
-                  <i class="bi bi-{{ notif.icon }} text-{{ getNotificationClass(notif.type) }}"></i>
-                </div>
-                <div class="flex-grow-1">
-                  <div class="fw-bold">{{ notif.message }}</div>
-                  <small class="text-muted">{{ notif.temps }}</small>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="col-md-3" *ngIf="nouvelleDemande.type === 'AUTRE'">
+          <label class="form-label">Précisez le type</label>
+          <input type="text" class="form-control" [(ngModel)]="nouvelleDemande.typeAutre" placeholder="Ex: Demande spéciale...">
         </div>
-        <div class="card-footer bg-white border-0 pb-4">
-          <button class="btn btn-link" (click)="voirToutesNotifications()">
-            Voir toutes les notifications
+        <div class="col-md-4">
+          <label class="form-label">Documents (PDF, DOC, JPG)</label>
+          <input type="file" class="form-control" (change)="onFileSelected($event)" multiple accept=".pdf,.doc,.docx,.jpg,.png">
+          <small class="text-muted" *ngIf="fichiers.length > 0">{{ fichiers.length }} fichier(s) sélectionné(s)</small>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button class="btn btn-primary w-100" (click)="soumettreDemande()" [disabled]="chargementSoumission">
+            <i class="bi bi-send" [class.spin]="chargementSoumission"></i>
+            {{ chargementSoumission ? 'Envoi...' : 'Soumettre' }}
           </button>
         </div>
       </div>
+      <div *ngIf="messageSoumission" class="alert alert-{{ messageType }} mt-3">
+        {{ messageSoumission }}
+      </div>
+    </div>
+  </div>
 
+  <!-- Tableau des demandes -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 pt-4">
+      <h5 class="fw-bold mb-0">
+        <i class="bi bi-files"></i> Mes demandes
+      </h5>
+      <small class="text-muted">Suivi de mes demandes et documents</small>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Référence</th>
+              <th>Type</th>
+              <th>Date dépôt</th>
+              <th>Statut</th>
+              <th>Documents</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="mesDemandes.length === 0">
+              <td colspan="6" class="text-center py-4 text-muted">
+                <i class="bi bi-inbox fs-3"></i>
+                <p class="mb-0">Aucune demande soumise</p>
+              </td>
+            </tr>
+            <tr *ngFor="let demande of mesDemandes">
+              <td class="fw-semibold">{{ demande.reference }}</td>
+              <td>
+                <span class="badge bg-secondary">{{ demande.type }}</span>
+              </td>
+              <td>{{ demande.date_depot | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-warning text-dark': demande.statut === 'En attente',
+                  'bg-info text-dark': demande.statut === 'Validé par Admin Métier',
+                  'bg-success': demande.statut === 'Validé par Ministère',
+                  'bg-danger': demande.statut === 'Refusé'
+                }">
+                  {{ demande.statut }}
+                </span>
+              </td>
+              <td>
+                <span *ngIf="demande.nb_fichiers > 0" class="text-success">
+                  <i class="bi bi-check-circle-fill"></i> {{ demande.nb_fichiers }} document(s)
+                </span>
+                <span *ngIf="!demande.nb_fichiers || demande.nb_fichiers === 0" class="text-muted">
+                  <i class="bi bi-file-earmark"></i> Aucun document
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-outline-info" (click)="voirDocuments(demande)" [disabled]="!demande.nb_fichiers || demande.nb_fichiers === 0">
+                  <i class="bi bi-eye"></i> Voir docs
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions rapides -->
+  <div class="row g-4">
+    <div class="col-md-4">
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-0 pt-4">
           <h5 class="fw-bold mb-0">Actions rapides</h5>
         </div>
         <div class="card-body">
           <div class="row g-2">
-            <div class="col-6" *ngFor="let action of actionsRapides">
+            <div class="col-12" *ngFor="let action of actionsRapides">
               <button class="btn btn-outline-secondary w-100 text-start" [routerLink]="action.route">
                 <i class="bi bi-{{ action.icon }} me-2"></i>
                 {{ action.label }}
