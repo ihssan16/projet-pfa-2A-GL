@@ -13,7 +13,8 @@
           
           <h5 class="fw-bold text-primary mb-4">
             <i class="bi" [ngClass]="modeEdition ? 'bi-pencil-square' : 'bi-person-plus-fill'"></i> 
-            <span class="ms-2">{{ modeEdition ? "Modifier l'élève" : "Inscrire un nouvel élève" }}</span>
+            <span class="ms-2" *ngIf="modeEdition">Modifier l'élève</span>
+            <span class="ms-2" *ngIf="!modeEdition">Inscrire un nouvel élève</span>
           </h5>
 
           <div *ngIf="messageSucces" class="alert alert-success">{{ messageSucces }}</div>
@@ -36,6 +37,11 @@
               <input type="email" class="form-control" name="email" [(ngModel)]="nouvelEleve.email" required>
             </div>
 
+            <div class="mb-3">
+              <label class="form-label text-muted small">Classe / Niveau</label>
+              <input type="text" class="form-control" name="etudiant_niveau" [(ngModel)]="nouvelEleve.etudiant_niveau" placeholder="Ex: 2ème Collège A" required>
+            </div>
+
             <div class="mb-4">
               <label class="form-label text-muted small">Mot de passe provisoire</label>
               <input type="password" class="form-control" name="password" [(ngModel)]="nouvelEleve.password" [required]="!modeEdition">
@@ -46,7 +52,10 @@
             <div class="d-grid gap-2">
               <button type="submit" class="btn btn-primary" [disabled]="enChargement">
                 <span *ngIf="enChargement" class="spinner-border spinner-border-sm me-2"></span>
-                {{ enChargement ? "Traitement..." : (modeEdition ? "Enregistrer les modifications" : "Inscrire l'élève") }}
+  
+                <span *ngIf="enChargement">Traitement...</span>
+                <span *ngIf="!enChargement && modeEdition">Enregistrer les modifications</span>
+                <span *ngIf="!enChargement && !modeEdition">Inscrire l'élève</span>
               </button>
               
               <button type="button" *ngIf="modeEdition" class="btn btn-outline-secondary" (click)="annulerEdition()">

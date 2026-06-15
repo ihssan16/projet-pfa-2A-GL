@@ -15,6 +15,7 @@ class UtilisateurSerializer(serializers.ModelSerializer):
             return obj.profil_etudiant.ecole.nom
         return None
 
+
 class CreerUtilisateurSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
     
@@ -22,16 +23,20 @@ class CreerUtilisateurSerializer(serializers.ModelSerializer):
     ecole_ville = serializers.CharField(write_only=True, required=False, allow_blank=True)
     ecole_niveaux = serializers.CharField(write_only=True, required=False, allow_blank=True)
     ecole_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    
+    etudiant_niveau = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = Utilisateur
-        fields = ['email', 'first_name', 'last_name', 'role', 'password', 'ecole_nom', 'ecole_ville', 'ecole_niveaux', 'ecole_id']
+        fields = ['email', 'first_name', 'last_name', 'role', 'password', 'ecole_nom', 'ecole_ville', 'ecole_niveaux', 'ecole_id', 'etudiant_niveau']
 
     def create(self, validated_data):
         ecole_nom = validated_data.pop('ecole_nom', None)
         ecole_ville = validated_data.pop('ecole_ville', None)
         ecole_niveaux = validated_data.pop('ecole_niveaux', None)
         ecole_id = validated_data.pop('ecole_id', None)
+        
+        etudiant_niveau = validated_data.pop('etudiant_niveau', '')
         
         password = validated_data.pop('password')
         validated_data['username'] = validated_data['email']
@@ -40,26 +45,29 @@ class CreerUtilisateurSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
 
-        # On récupère la requête pour savoir qui est connecté
         request = self.context.get('request')
 
         if user.role == 'ECOLE' and ecole_nom:
             Ecole.objects.create(utilisateur=user, nom=ecole_nom, ville=ecole_ville, niveaux=ecole_niveaux)
             
         elif user.role == 'ETUDIANT':
-            # ⚡ NOUVELLE LOGIQUE : Si l'utilisateur connecté est une école, on attache l'élève automatiquement
             if request and hasattr(request.user, 'profil_ecole') and request.user.profil_ecole:
-                Etudiant.objects.create(utilisateur=user, ecole=request.user.profil_ecole)
+                Etudiant.objects.create(
+                    utilisateur=user, 
+                    ecole=request.user.profil_ecole, 
+                    niveau=etudiant_niveau
+                )
             
-            # (On garde l'ancien comportement au cas où l'Admin Système voudrait créer un élève via un ID)
             elif ecole_id:
                 try:
                     ecole = Ecole.objects.get(id=ecole_id)
-                    Etudiant.objects.create(utilisateur=user, ecole=ecole)
+                    # ⚡ On sauvegarde le niveau ici aussi au cas où
+                    Etudiant.objects.create(utilisateur=user, ecole=ecole, niveau=etudiant_niveau)
                 except Ecole.DoesNotExist:
                     pass
 
         return user
+    
     
 class ProfilSerializer(serializers.ModelSerializer):
     role_display = serializers.CharField(source='get_role_display', read_only=True)
@@ -71,17 +79,26 @@ class ProfilSerializer(serializers.ModelSerializer):
     ecole_capacite = serializers.SerializerMethodField()
     nombre_etudiants = serializers.SerializerMethodField()
 
+    profil_etudiant = serializers.SerializerMethodField()
+
     class Meta:
         model = Utilisateur
         fields = ['id', 'email', 'first_name', 'last_name', 'role', 'role_display', 'is_active', 
-                  'ecole_nom', 'ecole_ville', 'ecole_niveaux', 'ecole_capacite', 'nombre_etudiants']
+                  'ecole_nom', 'ecole_ville', 'ecole_niveaux', 'ecole_capacite', 'nombre_etudiants',
+                  'profil_etudiant'] 
 
     def get_ecole_nom(self, obj):
-        if hasattr(obj, 'profil_ecole') and obj.profil_ecole: return obj.profil_ecole.nom
+        if hasattr(obj, 'profil_ecole') and obj.profil_ecole: 
+            return obj.profil_ecole.nom
+        if hasattr(obj, 'profil_etudiant') and obj.profil_etudiant and obj.profil_etudiant.ecole:
+            return obj.profil_etudiant.ecole.nom
         return None
 
     def get_ecole_ville(self, obj):
-        if hasattr(obj, 'profil_ecole') and obj.profil_ecole: return obj.profil_ecole.ville
+        if hasattr(obj, 'profil_ecole') and obj.profil_ecole: 
+            return obj.profil_ecole.ville
+        if hasattr(obj, 'profil_etudiant') and obj.profil_etudiant and obj.profil_etudiant.ecole:
+            return obj.profil_etudiant.ecole.ville
         return None
 
     def get_ecole_niveaux(self, obj):
@@ -97,6 +114,16 @@ class ProfilSerializer(serializers.ModelSerializer):
         if hasattr(obj, 'profil_ecole') and obj.profil_ecole:
             return obj.profil_ecole.etudiants.count()
         return 0
+    
+    def get_profil_etudiant(self, obj):
+        if hasattr(obj, 'profil_etudiant') and obj.profil_etudiant:
+            return {
+                "ecole": {
+                    "nom": obj.profil_etudiant.ecole.nom if obj.profil_etudiant.ecole else None
+                },
+                "niveau": getattr(obj.profil_etudiant, 'niveau', 'Non assigné') 
+            }
+        return None
     
 
 class EcoleSerializer(serializers.ModelSerializer):

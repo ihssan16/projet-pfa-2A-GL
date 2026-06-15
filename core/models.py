@@ -29,39 +29,34 @@ class Utilisateur(AbstractUser):
     
 
 class Ecole(models.Model):
-    # On relie cette école à un compte utilisateur de type "ECOLE"
     utilisateur = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, related_name='profil_ecole', null=True, blank=True)
     
-    # Données venant du dataset Public_School_Characteristics
     nom = models.CharField(max_length=255)
     ville = models.CharField(max_length=100, blank=True, null=True)
     niveaux = models.CharField(max_length=100, blank=True, null=True) 
     
-    # On peut garder quelques stats basiques
     capacite_eleves = models.IntegerField(default=0)
     
     def __str__(self):
         return self.nom
 
 class Etudiant(models.Model):
-    # On relie l'étudiant à son école
     utilisateur = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, related_name='profil_etudiant', null=True, blank=True)
 
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name='etudiants', null=True)
-    genre = models.CharField(max_length=20, blank=True, null=True)
+    
+    niveau = models.CharField(max_length=50, blank=True, null=True) 
 
+    genre = models.CharField(max_length=20, blank=True, null=True)
     education_parent = models.CharField(max_length=100, blank=True, null=True) 
     lunch_plan = models.CharField(max_length=50, blank=True, null=True)
     
-    # Notes des examens
     note_math = models.IntegerField(default=0)
     note_lecture = models.IntegerField(default=0)
     note_ecriture = models.IntegerField(default=0)
 
     def __str__(self):
         return f"Étudiant ({self.genre}) - Math: {self.note_math}"
-    
-    # Ajouter à la fin de votre models.py
 
 class Demande(models.Model):
     TYPE_CHOICES = (
