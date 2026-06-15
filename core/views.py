@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -75,7 +75,7 @@ class ListeUtilisateursView(APIView):
 
 
 class DetailUtilisateurView(APIView):
-    permission_classes = [EstAdminSys]
+    permission_classes = [EstAdminOuEcole]
 
     def get_user(self, pk):
         try:
@@ -107,6 +107,7 @@ class DetailUtilisateurView(APIView):
         user.delete()
         
         return Response({'detail': 'Compte supprimé définitivement.'}, status=status.HTTP_204_NO_CONTENT)
+
 
 
 class EcoleViewSet(viewsets.ReadOnlyModelViewSet):
