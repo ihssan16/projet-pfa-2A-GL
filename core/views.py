@@ -390,17 +390,20 @@ class DemandeView(APIView):
             'statut': demande.get_statut_display(),
             'demande_id': str(demande.id),
         })
+
 class EcoleInscriptionView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
         """Récupérer les demandes d'inscription selon le rôle"""
         if request.user.role == 'ADMIN_METIER':
-            ecoles = Ecole.objects.filter(statut_inscription='EN_ATTENTE_ADMIN')
+            ecoles = Ecole.objects.filter(statut_inscription='EN_ATTENTE_ADMIN',
+                                          est_demande_inscription=True
+            )        
         elif request.user.role == 'MINISTERE':
-            ecoles = Ecole.objects.filter(statut_inscription='VALIDE_ADMIN')
+            ecoles = Ecole.objects.filter(statut_inscription='VALIDE_ADMIN', est_demande_inscription=True)
         elif request.user.role == 'ADMIN_SYS':
-            ecoles = Ecole.objects.filter(statut_inscription='VALIDE_MINISTERE')
+            ecoles = Ecole.objects.filter(statut_inscription='VALIDE_MINISTERE', est_demande_inscription=True)
         else:
             ecoles = Ecole.objects.none()
         
@@ -441,6 +444,7 @@ class EcoleInscriptionView(APIView):
             email_contact=request.data.get('email_contact'),
             telephone=request.data.get('telephone'),
             site_web=request.data.get('site_web'),
+            est_demande_inscription=True,
         )
         
         # Traiter les documents
@@ -461,12 +465,26 @@ class EcoleInscriptionView(APIView):
     
     def patch(self, request, ecole_id):
         """Valider ou refuser une demande d'inscription"""
+        print(f"=== PATCH EcoleInscriptionView ===")
+        print(f"ecole_id reçu: {ecole_id}")
+        print(f"Type de ecole_id: {type(ecole_id)}")
+        
         try:
-            ecole = Ecole.objects.get(id=ecole_id)
+            # Essayer de trouver l'école avec est_demande_inscription=True
+            ecole = Ecole.objects.get(id=ecole_id, est_demande_inscription=True)
+            print(f"École trouvée avec UUID: {ecole.id} - {ecole.nom}")
         except Ecole.DoesNotExist:
-            return Response({'error': 'École non trouvée'}, status=404)
+            # Si pas trouvée, essayer de convertir en entier (pour les anciennes demandes)
+            try:
+                ecole_id_int = int(ecole_id)
+                ecole = Ecole.objects.get(id=ecole_id_int, est_demande_inscription=True)
+                print(f"École trouvée avec ID numérique: {ecole.id} - {ecole.nom}")
+            except (ValueError, Ecole.DoesNotExist):
+                print(f"Demande non trouvée: {ecole_id}")
+                return Response({'error': 'Demande d\'inscription non trouvée'}, status=404)
         
         action = request.data.get('action')
+        print(f"Action: {action}")
         
         # Admin Métier valide
         if request.user.role == 'ADMIN_METIER' and ecole.statut_inscription == 'EN_ATTENTE_ADMIN':
@@ -515,16 +533,17 @@ class EcoleInscriptionView(APIView):
                 user.set_password(password)
                 user.save()
                 ecole.utilisateur = user
-                message = 'École créée avec succès. Login: {} / Mot de passe: {}'.format(email, password)
+                message = f'École créée avec succès. Login: {email} / Mot de passe: {password}'
             else:
                 return Response({'error': 'Action non reconnue'}, status=400)
         else:
             return Response({'error': 'Action non autorisée'}, status=403)
         
         ecole.save()
+        print(f"Nouveau statut: {ecole.statut_inscription}")
         
         return Response({
             'message': message,
             'statut': ecole.get_statut_inscription_display(),
             'ecole_id': str(ecole.id)
-        })   
+        })

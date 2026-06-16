@@ -39,6 +39,7 @@ export class DashboardComponent implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object,
     private logService: LogService 
   ) {}
+  
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
