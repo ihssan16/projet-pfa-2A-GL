@@ -18,11 +18,11 @@ export class DashboardComponent implements OnInit {
   activites: any[] = []; 
   chargement = true;
 
+  // Garder "logs" et supprimer "incidents"
   stats = [
     { id: 'users', label: 'Utilisateurs actifs', value: '...', color: 'primary', icon: 'people', change: 'Mise à jour...', trend: 'up' },
     { id: 'ecoles', label: 'Établissements', value: '...', color: 'success', icon: 'building', change: 'Mise à jour...', trend: 'up' },
-    { id: 'logs', label: 'Logs aujourd\'hui', value: '8,342', color: 'info', icon: 'file-text', change: 'Enregistrement actif', trend: 'up' },
-    { id: 'incidents', label: 'Incidents sécurité', value: '0', color: 'danger', icon: 'shield-check', change: 'Aucun incident', trend: 'down' }
+    { id: 'logs', label: 'Logs aujourd\'hui', value: '8,342', color: 'info', icon: 'file-text', change: 'Enregistrement actif', trend: 'up' }
   ];
 
   alertes = [
@@ -96,7 +96,6 @@ export class DashboardComponent implements OnInit {
         });
 
         this.utilisateurs = tousLesUsers.slice(0, 5);
-
         this.chargement = false;
         this.cdr.detectChanges();
       },
@@ -108,6 +107,7 @@ export class DashboardComponent implements OnInit {
       }
     });
   }
+
   getRoleLabel(role: string): string {
     const map: any = {
       'ADMIN_SYS':       'Admin Système',
