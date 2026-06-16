@@ -20,4 +20,5 @@ urlpatterns = [
     path('demandes/<uuid:demande_id>/documents/', DemandeView.as_view(), name='demande-documents'),
     path('demandes/<uuid:demande_id>/upload/', DemandeView.as_view(), name='demande-upload'),
     path('', include(router.urls)),
+    path('demandes/<uuid:demande_id>/download/<str:filename>/', DemandeView.as_view(), name='demande-download'),
 ]
