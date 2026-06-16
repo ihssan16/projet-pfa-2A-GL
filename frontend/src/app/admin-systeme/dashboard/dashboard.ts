@@ -18,17 +18,9 @@ export class DashboardComponent implements OnInit {
   activites: any[] = []; 
   chargement = true;
 
-  // Garder "logs" et supprimer "incidents"
   stats = [
     { id: 'users', label: 'Utilisateurs actifs', value: '...', color: 'primary', icon: 'people', change: 'Mise à jour...', trend: 'up' },
     { id: 'ecoles', label: 'Établissements', value: '...', color: 'success', icon: 'building', change: 'Mise à jour...', trend: 'up' },
-    { id: 'logs', label: 'Logs aujourd\'hui', value: '8,342', color: 'info', icon: 'file-text', change: 'Enregistrement actif', trend: 'up' }
-  ];
-
-  alertes = [
-    { niveau: 'Haute', message: 'Tentative d\'accès non autorisé', source: 'IP 192.168.1.45', date: 'Aujourd\'hui' },
-    { niveau: 'Moyenne', message: 'Mot de passe expiré', source: '5 utilisateurs', date: 'Aujourd\'hui' },
-    { niveau: 'Basse', message: 'Session anormale', source: 'Compte école', date: 'Hier' }
   ];
 
   constructor(

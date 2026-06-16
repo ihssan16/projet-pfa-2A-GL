@@ -17,9 +17,9 @@
     </div>
   </div>
 
-  <!-- 3 cartes KPI : Utilisateurs, Établissements, Logs -->
+  <!-- 2 cartes KPI prenant 50% chacune (col-md-6) -->
   <div class="row g-4 mb-4">
-    <div class="col-md-4" *ngFor="let stat of stats">
+    <div class="col-md-6" *ngFor="let stat of stats">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start">
@@ -39,7 +39,9 @@
     </div>
   </div>
 
+  <!-- Section inférieure : Tableau (8 colonnes) + Historique (4 colonnes) -->
   <div class="row g-4">
+    <!-- Tableau Utilisateurs -->
     <div class="col-md-8">
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-0 pt-4">
@@ -107,29 +109,58 @@
     </div>
 
     <div class="col-md-4">
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-0 pt-4">
-          <h5 class="fw-bold mb-0">Activité en temps réel</h5>
-        </div>
-        <div class="card-body p-0">
-          <div class="list-group list-group-flush">
-            <div class="list-group-item border-0 py-3" *ngFor="let log of activites">
-              <div class="d-flex">
-                <div class="bg-{{ log.type }}-subtle rounded p-2 me-3">
-                  <i class="bi bi-{{ log.icone }} text-{{ log.type }}"></i>
-                </div>
-                <div class="flex-grow-1">
-                  <div class="fw-bold">{{ log.action }}</div>
-                  <small class="text-muted">{{ log.cible }}</small>
-                </div>
-                <small class="text-muted ms-2">{{ log.date | date:'HH:mm' }}</small>
-              </div>
-            </div>
+      <div class="card border-0 shadow-sm mb-4 h-100">
+        <div class="card-header bg-white border-0 pt-4 pb-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">Activité récente</h5>
+            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">Aujourd'hui</span>
           </div>
         </div>
-        <div class="card-footer bg-white border-0 pb-4 text-center">
-          <a routerLink="/admin-systeme/historique" class="btn btn-link text-decoration-none">
-            Voir l'historique complet <i class="bi bi-arrow-right ms-1"></i>
+        
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            
+            <div *ngIf="!activites || activites.length === 0" class="text-center py-5 text-muted">
+              <i class="bi bi-clock-history fs-1 text-light mb-2 d-block"></i>
+              <small>Aucune activité enregistrée</small>
+            </div>
+
+            <div class="list-group-item border-0 py-3 px-4 list-group-item-action" style="cursor: default;" *ngFor="let log of activites">
+              <div class="d-flex align-items-center">
+                
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" 
+                     [ngClass]="log.type ? 'bg-' + log.type + '-subtle' : 'bg-primary-subtle'" 
+                     style="width: 45px; height: 45px; min-width: 45px;">
+                  <i class="bi fs-5" 
+                     [ngClass]="[log.icone ? 'bi-' + log.icone : 'bi-activity', log.type ? 'text-' + log.type : 'text-primary']">
+                  </i>
+                </div>
+                
+                <div class="flex-grow-1 text-truncate">
+                  <h6 class="mb-1 fw-semibold text-dark text-truncate" [title]="log.action">
+                    {{ log.action }}
+                  </h6>
+                  <p class="mb-0 text-muted small text-truncate">
+                    <i class="bi bi-arrow-return-right me-1 opacity-50"></i>
+                    {{ log.cible || 'Système' }}
+                  </p>
+                </div>
+                
+                <div class="text-end ms-3">
+                  <span class="badge bg-light text-secondary border rounded-pill py-1 px-2">
+                    <i class="bi bi-clock me-1"></i>{{ log.date ? (log.date | date:'HH:mm') : '00:00' }}
+                  </span>
+                </div>
+                
+              </div>
+            </div>
+
+          </div>
+        </div>
+        
+        <div class="card-footer bg-white border-top-0 pt-2 pb-4 text-center px-4">
+          <a routerLink="/admin-systeme/historique" class="btn btn-light w-100 rounded-pill text-primary fw-medium hover-shadow-sm transition-all">
+            Voir tout l'historique <i class="bi bi-arrow-right ms-2"></i>
           </a>
         </div>
       </div>
