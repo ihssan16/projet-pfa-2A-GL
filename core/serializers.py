@@ -122,7 +122,14 @@ class ProfilSerializer(serializers.ModelSerializer):
             math20 = (etudiant.note_math or 0) / 5
             lecture20 = (etudiant.note_lecture or 0) / 5
             ecriture20 = (etudiant.note_ecriture or 0) / 5
-            moyenne = ((math20 * 4) + (lecture20 * 3) + (ecriture20 * 3)) / 10
+            physique20 = (etudiant.note_physique or 0) / 5
+            anglais20 = (etudiant.note_anglais or 0) / 5
+            histoire20 = (etudiant.note_histoire or 0) / 5
+            info20 = (etudiant.note_informatique or 0) / 5
+            
+
+            total_points = (math20*4) + (physique20*4) + (info20*4) + (lecture20*2) + (ecriture20*2) + (anglais20*2) + (histoire20*2)
+            moyenne = total_points / 20
             
             rang = 1
             total_eleves = 1
@@ -135,19 +142,26 @@ class ProfilSerializer(serializers.ModelSerializer):
                     c_math = (c.note_math or 0) / 5
                     c_lec = (c.note_lecture or 0) / 5
                     c_ecr = (c.note_ecriture or 0) / 5
-                    c_moy = ((c_math * 4) + (c_lec * 3) + (c_ecr * 3)) / 10
+                    c_phy = (c.note_physique or 0) / 5
+                    c_ang = (c.note_anglais or 0) / 5
+                    c_his = (c.note_histoire or 0) / 5
+                    c_inf = (c.note_informatique or 0) / 5
+                    
+                    c_moy = ((c_math*4) + (c_phy*4) + (c_inf*4) + (c_lec*2) + (c_ecr*2) + (c_ang*2) + (c_his*2)) / 20
                     
                     if c_moy > moyenne:
                         rang += 1
 
             return {
-                "ecole": {
-                    "nom": etudiant.ecole.nom if etudiant.ecole else None
-                },
+                "ecole": { "nom": etudiant.ecole.nom if etudiant.ecole else None },
                 "niveau": getattr(etudiant, 'niveau', 'Non assigné'),
                 "note_math": etudiant.note_math,
                 "note_lecture": etudiant.note_lecture,
                 "note_ecriture": etudiant.note_ecriture,
+                "note_physique": etudiant.note_physique,
+                "note_anglais": etudiant.note_anglais,
+                "note_histoire": etudiant.note_histoire,
+                "note_informatique": etudiant.note_informatique,
                 "moyenne": round(moyenne, 1),
                 "rang": rang,
                 "total_eleves": total_eleves

@@ -1,6 +1,11 @@
 import uuid
+import random
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+
+
+def note_aleatoire():
+    return random.randint(40, 100)
 
 class Utilisateur(AbstractUser):
     ROLE_CHOICES = (
@@ -86,9 +91,13 @@ class Etudiant(models.Model):
     note_math = models.IntegerField(default=0)
     note_lecture = models.IntegerField(default=0)
     note_ecriture = models.IntegerField(default=0)
+    note_physique = models.IntegerField(default=note_aleatoire)
+    note_anglais = models.IntegerField(default=note_aleatoire)
+    note_histoire = models.IntegerField(default=note_aleatoire)
+    note_informatique = models.IntegerField(default=note_aleatoire)
 
     def __str__(self):
-        return f"Étudiant ({self.genre}) - Math: {self.note_math}"
+        return f"Étudiant ({self.niveau}) - Math: {self.note_math}"
 
 class Demande(models.Model):
     TYPE_CHOICES = (

@@ -73,14 +73,23 @@ export class DashboardComponent {
           this.etudiant.ecole = data.profil_etudiant.ecole?.nom || 'École non renseignée';
           this.etudiant.classe = data.profil_etudiant.niveau || 'Classe non renseignée'; 
           
+          // Extraction des nouvelles notes
           const math20 = (data.profil_etudiant.note_math || 0) / 5;
           const lecture20 = (data.profil_etudiant.note_lecture || 0) / 5;
           const ecriture20 = (data.profil_etudiant.note_ecriture || 0) / 5;
+          const physique20 = (data.profil_etudiant.note_physique || 0) / 5;
+          const anglais20 = (data.profil_etudiant.note_anglais || 0) / 5;
+          const histoire20 = (data.profil_etudiant.note_histoire || 0) / 5;
+          const info20 = (data.profil_etudiant.note_informatique || 0) / 5;
 
           this.notes = [
             { matiere: 'Mathématiques', coef: 4, note: math20, mention: this.calculerMention(math20), couleur: this.calculerCouleurTheme(math20) },
-            { matiere: 'Lecture', coef: 3, note: lecture20, mention: this.calculerMention(lecture20), couleur: this.calculerCouleurTheme(lecture20) },
-            { matiere: 'Écriture', coef: 3, note: ecriture20, mention: this.calculerMention(ecriture20), couleur: this.calculerCouleurTheme(ecriture20) }
+            { matiere: 'Informatique', coef: 4, note: info20, mention: this.calculerMention(info20), couleur: this.calculerCouleurTheme(info20) },
+            { matiere: 'Sciences Physiques', coef: 4, note: physique20, mention: this.calculerMention(physique20), couleur: this.calculerCouleurTheme(physique20) },
+            { matiere: 'Anglais', coef: 2, note: anglais20, mention: this.calculerMention(anglais20), couleur: this.calculerCouleurTheme(anglais20) },
+            { matiere: 'Histoire-Géo', coef: 2, note: histoire20, mention: this.calculerMention(histoire20), couleur: this.calculerCouleurTheme(histoire20) },
+            { matiere: 'Lecture', coef: 2, note: lecture20, mention: this.calculerMention(lecture20), couleur: this.calculerCouleurTheme(lecture20) },
+            { matiere: 'Écriture', coef: 2, note: ecriture20, mention: this.calculerMention(ecriture20), couleur: this.calculerCouleurTheme(ecriture20) }
           ];
 
           const moyenne = data.profil_etudiant.moyenne || 0;
