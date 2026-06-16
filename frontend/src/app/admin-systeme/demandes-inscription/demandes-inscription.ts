@@ -58,38 +58,42 @@ export class DemandesInscriptionComponent implements OnInit {
   }
 
   creerEcole(demande: any) {
-    const email = prompt('Email de connexion pour l\'école:', demande.email_contact || '');
-    if (email === null) return;
-    
-    const password = prompt('Mot de passe pour l\'école (min 6 caractères):', 'ecole123456');
-    if (password === null || password.length < 6) {
-      alert('Le mot de passe doit faire au moins 6 caractères');
-      return;
-    }
-
-    const contactNom = prompt('Nom du responsable:') || '';
-    const contactPrenom = prompt('Prénom du responsable:') || '';
-
-    if (confirm(`Créer l'école "${demande.nom}" avec l'email ${email} ?`)) {
-      this.http.patch(
-        `http://localhost:8000/api/ecoles-inscription/${demande.id}/`,
-        {
-          action: 'creer',
-          email: email,
-          password: password,
-          contact_nom: contactNom,
-          contact_prenom: contactPrenom
-        },
-        this.authService['getHeaders']()
-      ).subscribe({
-        next: (response: any) => {
-          alert(`✅ ${response.message}`);
-          this.chargerDemandes();
-        },
-        error: (err) => {
-          alert(`❌ Erreur: ${err.error?.error || err.message}`);
-        }
-      });
-    }
+  const email = prompt('Email de connexion pour l\'école:', demande.email_contact || '');
+  if (email === null) return;
+  
+  const password = prompt('Mot de passe pour l\'école (min 6 caractères):', 'ecole123456');
+  if (password === null || password.length < 6) {
+    alert('Le mot de passe doit faire au moins 6 caractères');
+    return;
   }
+
+  const contactNom = prompt('Nom du responsable:') || '';
+  const contactPrenom = prompt('Prénom du responsable:') || '';
+
+  if (confirm(`Créer l'école "${demande.nom}" avec l'email ${email} ?`)) {
+    const ecoleId = demande.id;
+    console.log('Création école ID (UUID):', ecoleId);
+    
+    this.http.patch(
+      `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
+      {
+        action: 'creer',
+        email: email,
+        password: password,
+        contact_nom: contactNom,
+        contact_prenom: contactPrenom
+      },
+      this.authService['getHeaders']()
+    ).subscribe({
+      next: (response: any) => {
+        alert(`✅ ${response.message}`);
+        this.chargerDemandes();
+      },
+      error: (err) => {
+        console.error('Erreur détaillée création:', err);
+        alert(`❌ Erreur: ${err.error?.error || err.message || 'Veuillez réessayer'}`);
+      }
+    });
+  }
+}
 }

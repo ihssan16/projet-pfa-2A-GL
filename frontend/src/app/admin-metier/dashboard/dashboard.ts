@@ -187,40 +187,52 @@ export class DashboardComponent implements OnInit {
   }
 
     validerEcole(demande: any) {
-    if (confirm(`Valider la demande d'inscription de ${demande.nom} ?`)) {
-      this.http.patch(
-        `http://localhost:8000/api/ecoles-inscription/${demande.id}/`,
-        { action: 'valider' },
-        this.authService['getHeaders']()
-      ).subscribe({
-        next: (response: any) => {
-          alert(`✅ ${response.message}`);
-          this.chargerDemandesEcoles();
-        },
-        error: (err) => {
-          alert(`❌ Erreur: ${err.error?.error || err.message}`);
-        }
-      });
-    }
+  if (confirm(`Valider la demande d'inscription de ${demande.nom} ?`)) {
+    const ecoleId = demande.id;
+    console.log('Validation école ID (UUID):', ecoleId);
+    
+    this.http.patch(
+      `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
+      { action: 'valider' },
+      this.authService['getHeaders']()
+    ).subscribe({
+      next: (response: any) => {
+        alert(`✅ ${response.message}`);
+        this.chargerDemandesEcoles();
+        this.chargerStatsEcoles();
+      },
+      error: (err) => {
+        console.error('Erreur détaillée validation:', err);
+        const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
+        alert(`❌ Erreur: ${errorMsg}`);
+      }
+    });
   }
+}
 
-  refuserEcole(demande: any) {
-    if (confirm(`Refuser la demande d'inscription de ${demande.nom} ?`)) {
-      this.http.patch(
-        `http://localhost:8000/api/ecoles-inscription/${demande.id}/`,
-        { action: 'refuser' },
-        this.authService['getHeaders']()
-      ).subscribe({
-        next: (response: any) => {
-          alert(`❌ ${response.message}`);
-          this.chargerDemandesEcoles();
-        },
-        error: (err) => {
-          alert(`❌ Erreur: ${err.error?.error || err.message}`);
-        }
-      });
-    }
+refuserEcole(demande: any) {
+  if (confirm(`Refuser la demande d'inscription de ${demande.nom} ?`)) {
+    const ecoleId = demande.id;
+    console.log('Refus école ID (UUID):', ecoleId);
+    
+    this.http.patch(
+      `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
+      { action: 'refuser' },
+      this.authService['getHeaders']()
+    ).subscribe({
+      next: (response: any) => {
+        alert(`❌ ${response.message}`);
+        this.chargerDemandesEcoles();
+        this.chargerStatsEcoles();
+      },
+      error: (err) => {
+        console.error('Erreur détaillée refus:', err);
+        const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
+        alert(`❌ Erreur: ${errorMsg}`);
+      }
+    });
   }
+}
 
   voirDetails(demande: Demande) {
     alert(`📋 Dossier: ${demande.reference}\n🏫 Établissement: ${demande.etablissement}\n📍 Ville: ${demande.ville}\n📝 Type: ${demande.type}\n📅 Date: ${demande.date_depot}\n✅ Statut: ${demande.statut}`);

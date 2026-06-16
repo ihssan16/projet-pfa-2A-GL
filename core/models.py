@@ -36,6 +36,7 @@ class Ecole(models.Model):
     niveaux = models.CharField(max_length=100, blank=True, null=True) 
     
     capacite_eleves = models.IntegerField(default=0)
+    est_demande_inscription = models.BooleanField(default=False)
     
     def __str__(self):
         return self.nom

@@ -154,42 +154,52 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-    validerEcoleMinistere(demande: any) {
-    if (confirm(`Valider définitivement l'école ${demande.nom} ?`)) {
-      this.http.patch(
-        `http://localhost:8000/api/ecoles-inscription/${demande.id}/`,
-        { action: 'valider' },
-        this.getHeaders()
-      ).subscribe({
-        next: (response: any) => {
-          alert(`✅ ${response.message}`);
-          this.chargerDemandesEcolesMinistere();
-        },
-        error: (err) => {
-          alert(`❌ Erreur: ${err.error?.error || err.message}`);
-        }
-      });
-    }
+  validerEcoleMinistere(demande: any) {
+  if (confirm(`Valider définitivement l'école ${demande.nom} ?`)) {
+    const ecoleId = demande.id;
+    console.log('Validation Ministère ID (UUID):', ecoleId);
+    
+    this.http.patch(
+      `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
+      { action: 'valider' },
+      this.getHeaders()
+    ).subscribe({
+      next: (response: any) => {
+        alert(`✅ ${response.message}`);
+        this.chargerDemandesEcolesMinistere();
+      },
+      error: (err) => {
+        console.error('Erreur détaillée validation Ministère:', err);
+        const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
+        alert(`❌ Erreur: ${errorMsg}`);
+      }
+    });
   }
+}
 
-  refuserEcoleMinistere(demande: any) {
-    if (confirm(`Refuser l'école ${demande.nom} ?`)) {
-      this.http.patch(
-        `http://localhost:8000/api/ecoles-inscription/${demande.id}/`,
-        { action: 'refuser' },
-        this.getHeaders()
-      ).subscribe({
-        next: (response: any) => {
-          alert(`❌ ${response.message}`);
-          this.chargerDemandesEcolesMinistere();
-        },
-        error: (err) => {
-          alert(`❌ Erreur: ${err.error?.error || err.message}`);
-        }
-      });
-    }
+refuserEcoleMinistere(demande: any) {
+  if (confirm(`Refuser l'école ${demande.nom} ?`)) {
+    const ecoleId = demande.id;
+    console.log('Refus Ministère ID (UUID):', ecoleId);
+    
+    this.http.patch(
+      `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
+      { action: 'refuser' },
+      this.getHeaders()
+    ).subscribe({
+      next: (response: any) => {
+        alert(`❌ ${response.message}`);
+        this.chargerDemandesEcolesMinistere();
+      },
+      error: (err) => {
+        console.error('Erreur détaillée refus Ministère:', err);
+        const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
+        alert(`❌ Erreur: ${errorMsg}`);
+      }
+    });
   }
-
+}
+    
   // NOUVELLE MÉTHODE POUR TÉLÉCHARGER LES DOCUMENTS
   telechargerDocument(demande: Demande) {
     if (!demande.nb_fichiers || demande.nb_fichiers === 0) {
