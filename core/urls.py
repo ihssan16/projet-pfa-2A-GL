@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import LoginView, ProfilView, ListeUtilisateursView, DetailUtilisateurView, EcoleViewSet, EtudiantViewSet, MesElevesView, StatsAdminMetierView
 from .views import StatistiquesDemandesView, DemandeView
+from .views import EcoleInscriptionView
 router = DefaultRouter()
 router.register(r'ecoles', EcoleViewSet)
 router.register(r'etudiants', EtudiantViewSet)
@@ -21,4 +22,7 @@ urlpatterns = [
     path('demandes/<uuid:demande_id>/upload/', DemandeView.as_view(), name='demande-upload'),
     path('', include(router.urls)),
     path('demandes/<uuid:demande_id>/download/<str:filename>/', DemandeView.as_view(), name='demande-download'),
+    path('ecoles-inscription/', EcoleInscriptionView.as_view(), name='ecoles-inscription'),
+    path('ecoles-inscription/<uuid:ecole_id>/', EcoleInscriptionView.as_view(), name='ecole-inscription-detail'),
+
 ]

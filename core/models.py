@@ -39,6 +39,37 @@ class Ecole(models.Model):
     
     def __str__(self):
         return self.nom
+    # NOUVEAUX CHAMPS POUR LE WORKFLOW D'INSCRIPTION
+    STATUT_INSCRIPTION_CHOICES = (
+        ('EN_ATTENTE_ADMIN', 'En attente Admin Métier'),
+        ('VALIDE_ADMIN', 'Validé par Admin Métier'),
+        ('VALIDE_MINISTERE', 'Validé par Ministère'),
+        ('ACTIVE', 'Active'),
+        ('REFUSEE', 'Refusée'),
+    )
+    
+    statut_inscription = models.CharField(
+        max_length=30, 
+        choices=STATUT_INSCRIPTION_CHOICES, 
+        default='EN_ATTENTE_ADMIN'
+    )
+    date_demande = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    date_validation_admin = models.DateTimeField(null=True, blank=True)
+    date_validation_ministere = models.DateTimeField(null=True, blank=True)
+    date_creation = models.DateTimeField(null=True, blank=True)
+    
+    # Documents
+    document_autorisation = models.FileField(upload_to='ecoles/documents/', null=True, blank=True)
+    document_identite = models.FileField(upload_to='ecoles/documents/', null=True, blank=True)
+    document_justificatif = models.FileField(upload_to='ecoles/documents/', null=True, blank=True)
+    
+    # Contact
+    email_contact = models.EmailField(null=True, blank=True)
+    telephone = models.CharField(max_length=20, blank=True, null=True)
+    site_web = models.URLField(blank=True, null=True)
+    
+    def __str__(self):
+        return self.nom
 
 class Etudiant(models.Model):
     utilisateur = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, related_name='profil_etudiant', null=True, blank=True)
@@ -118,4 +149,4 @@ class Demande(models.Model):
     
     def __str__(self):
         return f"{self.reference} - {self.ecole.nom} - {self.get_statut_display()}"
-    
+

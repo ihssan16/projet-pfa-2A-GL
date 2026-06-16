@@ -230,5 +230,64 @@
         </div>
       </div>
     </div>
+          <!-- Section Demandes d'inscription d'écoles - Ministère -->
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white border-0 pt-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="fw-bold mb-0">
+                <i class="bi bi-building-check text-success"></i> Validation des nouvelles écoles
+              </h5>
+              <small class="text-muted">Validez les écoles après l'Admin Métier</small>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-3">École</th>
+                  <th>Ville</th>
+                  <th>Niveaux</th>
+                  <th>Validé par Admin</th>
+                  <th>Statut</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="demandesEcolesMinistere.length === 0">
+                  <td colspan="6" class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox fs-3"></i>
+                    <p class="mb-0">Aucune école en attente de validation</p>
+                  </td>
+                </tr>
+                <tr *ngFor="let demande of demandesEcolesMinistere">
+                  <td class="ps-3 fw-semibold">{{ demande.nom }}</td>
+                  <td>{{ demande.ville }}</td>
+                  <td>{{ demande.niveaux }}</td>
+                  <td>{{ demande.date_validation_admin | date:'dd/MM/yyyy' }}</td>
+                  <td>
+                    <span class="badge bg-info text-dark">
+                      {{ demande.statut }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button class="btn btn-outline-success" (click)="validerEcoleMinistere(demande)" title="Valider">
+                        <i class="bi bi-check-lg"></i> Valider
+                      </button>
+                      <button class="btn btn-outline-danger" (click)="refuserEcoleMinistere(demande)" title="Refuser">
+                        <i class="bi bi-x-lg"></i> Refuser
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
   </div>
 </div>

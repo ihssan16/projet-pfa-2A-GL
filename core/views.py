@@ -390,4 +390,141 @@ class DemandeView(APIView):
             'statut': demande.get_statut_display(),
             'demande_id': str(demande.id),
         })
+class EcoleInscriptionView(APIView):
+    permission_classes = [IsAuthenticated]
     
+    def get(self, request):
+        """Récupérer les demandes d'inscription selon le rôle"""
+        if request.user.role == 'ADMIN_METIER':
+            ecoles = Ecole.objects.filter(statut_inscription='EN_ATTENTE_ADMIN')
+        elif request.user.role == 'MINISTERE':
+            ecoles = Ecole.objects.filter(statut_inscription='VALIDE_ADMIN')
+        elif request.user.role == 'ADMIN_SYS':
+            ecoles = Ecole.objects.filter(statut_inscription='VALIDE_MINISTERE')
+        else:
+            ecoles = Ecole.objects.none()
+        
+        data = []
+        for ecole in ecoles:
+            data.append({
+                'id': str(ecole.id),
+                'nom': ecole.nom,
+                'ville': ecole.ville,
+                'niveaux': ecole.niveaux,
+                'capacite_eleves': ecole.capacite_eleves,
+                'statut': ecole.get_statut_inscription_display(),
+                'date_demande': ecole.date_demande.strftime('%Y-%m-%d %H:%M') if ecole.date_demande else None,
+                'date_validation_admin': ecole.date_validation_admin.strftime('%Y-%m-%d %H:%M') if ecole.date_validation_admin else None,
+                'email_contact': ecole.email_contact,
+                'telephone': ecole.telephone,
+                'site_web': ecole.site_web,
+                'document_autorisation': ecole.document_autorisation.url if ecole.document_autorisation else None,
+                'document_identite': ecole.document_identite.url if ecole.document_identite else None,
+                'document_justificatif': ecole.document_justificatif.url if ecole.document_justificatif else None,
+            })
+        
+        return Response(data)
+    
+    def post(self, request):
+        """Admin Métier crée une demande d'inscription d'école"""
+        if request.user.role != 'ADMIN_METIER':
+            return Response({'error': 'Seul l\'Admin Métier peut créer une demande d\'inscription'}, status=403)
+        
+        # Créer l'école avec statut EN_ATTENTE_ADMIN
+        ecole = Ecole.objects.create(
+            nom=request.data.get('nom'),
+            ville=request.data.get('ville'),
+            niveaux=request.data.get('niveaux'),
+            capacite_eleves=request.data.get('capacite_eleves', 0),
+            statut_inscription='EN_ATTENTE_ADMIN',
+            date_demande=timezone.now(),
+            email_contact=request.data.get('email_contact'),
+            telephone=request.data.get('telephone'),
+            site_web=request.data.get('site_web'),
+        )
+        
+        # Traiter les documents
+        if 'document_autorisation' in request.FILES:
+            ecole.document_autorisation = request.FILES['document_autorisation']
+        if 'document_identite' in request.FILES:
+            ecole.document_identite = request.FILES['document_identite']
+        if 'document_justificatif' in request.FILES:
+            ecole.document_justificatif = request.FILES['document_justificatif']
+        ecole.save()
+        
+        return Response({
+            'id': str(ecole.id),
+            'nom': ecole.nom,
+            'statut': ecole.get_statut_inscription_display(),
+            'message': 'Demande d\'inscription créée avec succès'
+        }, status=201)
+    
+    def patch(self, request, ecole_id):
+        """Valider ou refuser une demande d'inscription"""
+        try:
+            ecole = Ecole.objects.get(id=ecole_id)
+        except Ecole.DoesNotExist:
+            return Response({'error': 'École non trouvée'}, status=404)
+        
+        action = request.data.get('action')
+        
+        # Admin Métier valide
+        if request.user.role == 'ADMIN_METIER' and ecole.statut_inscription == 'EN_ATTENTE_ADMIN':
+            if action == 'valider':
+                ecole.statut_inscription = 'VALIDE_ADMIN'
+                ecole.date_validation_admin = timezone.now()
+                message = 'École validée par Admin Métier, en attente de validation Ministère'
+            elif action == 'refuser':
+                ecole.statut_inscription = 'REFUSEE'
+                message = 'Demande d\'inscription refusée'
+            else:
+                return Response({'error': 'Action non reconnue'}, status=400)
+        
+        # Ministère valide
+        elif request.user.role == 'MINISTERE' and ecole.statut_inscription == 'VALIDE_ADMIN':
+            if action == 'valider':
+                ecole.statut_inscription = 'VALIDE_MINISTERE'
+                ecole.date_validation_ministere = timezone.now()
+                message = 'École validée par le Ministère, prête pour création'
+            elif action == 'refuser':
+                ecole.statut_inscription = 'REFUSEE'
+                message = 'Demande d\'inscription refusée par le Ministère'
+            else:
+                return Response({'error': 'Action non reconnue'}, status=400)
+        
+        # Admin Système crée l'école
+        elif request.user.role == 'ADMIN_SYS' and ecole.statut_inscription == 'VALIDE_MINISTERE':
+            if action == 'creer':
+                ecole.statut_inscription = 'ACTIVE'
+                ecole.date_creation = timezone.now()
+                
+                # Créer un compte utilisateur pour l'école
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                email = request.data.get('email', f"ecole_{str(ecole.id)[:8]}@example.com")
+                password = request.data.get('password', 'ecole123456')
+                
+                user = User.objects.create(
+                    email=email,
+                    username=f"ecole_{str(ecole.id)[:8]}",
+                    first_name=request.data.get('contact_nom', ''),
+                    last_name=request.data.get('contact_prenom', ''),
+                    role='ECOLE',
+                    is_active=True
+                )
+                user.set_password(password)
+                user.save()
+                ecole.utilisateur = user
+                message = 'École créée avec succès. Login: {} / Mot de passe: {}'.format(email, password)
+            else:
+                return Response({'error': 'Action non reconnue'}, status=400)
+        else:
+            return Response({'error': 'Action non autorisée'}, status=403)
+        
+        ecole.save()
+        
+        return Response({
+            'message': message,
+            'statut': ecole.get_statut_inscription_display(),
+            'ecole_id': str(ecole.id)
+        })   

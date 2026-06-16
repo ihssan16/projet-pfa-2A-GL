@@ -1,0 +1,14 @@
+.badge {
+  padding: 0.35rem 0.65rem;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+.btn-group .btn {
+  padding: 0.25rem 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-group .btn:hover {
+  transform: scale(1.05);
+}

@@ -59,9 +59,11 @@ export class DashboardComponent implements OnInit {
 
   demandesMinistere: Demande[] = [];
   showModal = false;
+  demandesEcolesMinistere: any[] = [];
 
   ngOnInit() {
     this.chargerDemandesMinistere();
+    this.chargerDemandesEcolesMinistere();
   }
 
   private getHeaders(): { headers: HttpHeaders } {
@@ -85,6 +87,20 @@ export class DashboardComponent implements OnInit {
       error: (err) => {
         console.error('Erreur chargement demandes', err);
         this.demandesMinistere = [];
+      }
+    });
+  }
+
+    chargerDemandesEcolesMinistere() {
+    this.http.get<any[]>(
+      'http://localhost:8000/api/ecoles-inscription/',
+      this.getHeaders()
+    ).subscribe({
+      next: (data) => {
+        this.demandesEcolesMinistere = data;
+      },
+      error: (err) => {
+        console.error('Erreur chargement écoles', err);
       }
     });
   }
@@ -133,6 +149,42 @@ export class DashboardComponent implements OnInit {
         error: (err) => {
           console.error('Erreur refus', err);
           alert('Erreur lors du refus: ' + (err.error?.error || err.message));
+        }
+      });
+    }
+  }
+
+    validerEcoleMinistere(demande: any) {
+    if (confirm(`Valider définitivement l'école ${demande.nom} ?`)) {
+      this.http.patch(
+        `http://localhost:8000/api/ecoles-inscription/${demande.id}/`,
+        { action: 'valider' },
+        this.getHeaders()
+      ).subscribe({
+        next: (response: any) => {
+          alert(`✅ ${response.message}`);
+          this.chargerDemandesEcolesMinistere();
+        },
+        error: (err) => {
+          alert(`❌ Erreur: ${err.error?.error || err.message}`);
+        }
+      });
+    }
+  }
+
+  refuserEcoleMinistere(demande: any) {
+    if (confirm(`Refuser l'école ${demande.nom} ?`)) {
+      this.http.patch(
+        `http://localhost:8000/api/ecoles-inscription/${demande.id}/`,
+        { action: 'refuser' },
+        this.getHeaders()
+      ).subscribe({
+        next: (response: any) => {
+          alert(`❌ ${response.message}`);
+          this.chargerDemandesEcolesMinistere();
+        },
+        error: (err) => {
+          alert(`❌ Erreur: ${err.error?.error || err.message}`);
         }
       });
     }

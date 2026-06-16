@@ -47,6 +47,8 @@ export class DashboardComponent implements OnInit {
   demandes: Demande[] = [];
   parVille: any[] = [];
   dernieresEcoles: any[] = [];
+  demandesEcoles: any[] = [];
+  chargementEcoles = true;
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -61,6 +63,7 @@ export class DashboardComponent implements OnInit {
     this.chargerStatistiques();
     this.chargerStatsEcoles();
     this.chargerDemandes();
+    this.chargerDemandesEcoles();
   }
 
   chargerStatistiques() {
@@ -118,6 +121,24 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+    chargerDemandesEcoles() {
+    this.chargementEcoles = true;
+    this.http.get<any[]>(
+      'http://localhost:8000/api/ecoles-inscription/',
+      this.authService['getHeaders']()
+    ).subscribe({
+      next: (data) => {
+        this.demandesEcoles = data;
+        this.chargementEcoles = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur chargement demandes écoles', err);
+        this.chargementEcoles = false;
+      }
+    });
+  }
+
   getMaxVille(): number {
     return Math.max(...this.parVille.map((v: any) => v.count), 1);
   }
@@ -160,6 +181,42 @@ export class DashboardComponent implements OnInit {
         error: (err) => {
           console.error('Erreur refus', err);
           alert('Erreur lors du refus du dossier');
+        }
+      });
+    }
+  }
+
+    validerEcole(demande: any) {
+    if (confirm(`Valider la demande d'inscription de ${demande.nom} ?`)) {
+      this.http.patch(
+        `http://localhost:8000/api/ecoles-inscription/${demande.id}/`,
+        { action: 'valider' },
+        this.authService['getHeaders']()
+      ).subscribe({
+        next: (response: any) => {
+          alert(`✅ ${response.message}`);
+          this.chargerDemandesEcoles();
+        },
+        error: (err) => {
+          alert(`❌ Erreur: ${err.error?.error || err.message}`);
+        }
+      });
+    }
+  }
+
+  refuserEcole(demande: any) {
+    if (confirm(`Refuser la demande d'inscription de ${demande.nom} ?`)) {
+      this.http.patch(
+        `http://localhost:8000/api/ecoles-inscription/${demande.id}/`,
+        { action: 'refuser' },
+        this.authService['getHeaders']()
+      ).subscribe({
+        next: (response: any) => {
+          alert(`❌ ${response.message}`);
+          this.chargerDemandesEcoles();
+        },
+        error: (err) => {
+          alert(`❌ Erreur: ${err.error?.error || err.message}`);
         }
       });
     }

@@ -25,6 +25,9 @@ import { NotesComponent } from './parent/notes/notes';
 import { AuthentificationComponent } from './authentification/authentification';
 import { GestionUtilisateursComponent } from './admin-systeme/gestion-utilisateurs/gestion-utilisateurs';
 
+import { InscriptionEcoleComponent } from './admin-metier/inscription-ecole/inscription-ecole';
+import { DemandesInscriptionComponent } from './admin-systeme/demandes-inscription/demandes-inscription';
+
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
@@ -56,4 +59,7 @@ export const routes: Routes = [
   { path: 'admin-metier/dossiers/:id', component: DossiersComponent },
 
   { path: 'ecole/eleves', component: GestionElevesComponent },
+  // Ajouter dans le tableau routes
+{ path: 'admin-metier/inscription-ecole', component: InscriptionEcoleComponent },
+{ path: 'admin-systeme/demandes-inscription', component: DemandesInscriptionComponent },
 ];

@@ -6,15 +6,21 @@
       <h1 class="display-6 fw-bold mb-0">Dashboard Admin Métier</h1>
       <p class="text-muted">Validation et suivi des dossiers des établissements</p>
     </div>
-    <div class="dropdown">
-      <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-        <i class="bi bi-person-circle"></i> Admin Métier
-      </button>
-      <ul class="dropdown-menu">
-        <li><a class="dropdown-item" style="cursor:pointer" (click)="logout()">
-          <i class="bi bi-box-arrow-right"></i> Déconnexion
-        </a></li>
-      </ul>
+    <div class="d-flex gap-2">
+      <!-- AJOUT DU BOUTON "Nouvelle école" -->
+      <a routerLink="/admin-metier/inscription-ecole" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-circle"></i> Nouvelle école
+      </a>
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+          <i class="bi bi-person-circle"></i> Admin Métier
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" style="cursor:pointer" (click)="logout()">
+            <i class="bi bi-box-arrow-right"></i> Déconnexion
+          </a></li>
+        </ul>
+      </div>
     </div>
   </div>
 
@@ -156,6 +162,78 @@
                     <i class="bi bi-x-lg"></i>
                   </button>
                 </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+    <!-- Section Demandes d'inscription d'écoles -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 pt-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="fw-bold mb-0">
+            <i class="bi bi-building-add text-success"></i> Demandes d'inscription d'écoles
+          </h5>
+          <small class="text-muted">Validez les demandes avant transmission au Ministère</small>
+        </div>
+        <a routerLink="/admin-metier/inscription-ecole" class="btn btn-success btn-sm">
+          <i class="bi bi-plus-circle"></i> Nouvelle école
+        </a>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div *ngIf="chargementEcoles" class="text-center py-5">
+        <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+        Chargement...
+      </div>
+      <div class="table-responsive" *ngIf="!chargementEcoles">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">École</th>
+              <th>Ville</th>
+              <th>Niveaux</th>
+              <th>Demandé le</th>
+              <th>Statut</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="demandesEcoles.length === 0">
+              <td colspan="6" class="text-center py-4 text-muted">
+                <i class="bi bi-inbox fs-3"></i>
+                <p class="mb-0">Aucune demande d'inscription en attente</p>
+              </td>
+            </tr>
+            <tr *ngFor="let demande of demandesEcoles">
+              <td class="ps-3 fw-semibold">{{ demande.nom }}</td>
+              <td>{{ demande.ville }}</td>
+              <td>{{ demande.niveaux }}</td>
+              <td>{{ demande.date_demande | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-warning text-dark': demande.statut === 'En attente Admin Métier',
+                  'bg-success': demande.statut === 'Validé par Admin Métier',
+                  'bg-danger': demande.statut === 'Refusée'
+                }">
+                  {{ demande.statut }}
+                </span>
+              </td>
+              <td class="text-center">
+                <div class="btn-group btn-group-sm" role="group" *ngIf="demande.statut === 'En attente Admin Métier'">
+                  <button class="btn btn-outline-success" (click)="validerEcole(demande)" title="Valider">
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                  <button class="btn btn-outline-danger" (click)="refuserEcole(demande)" title="Refuser">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </div>
+                <span *ngIf="demande.statut !== 'En attente Admin Métier'" class="text-muted">
+                  {{ demande.statut }}
+                </span>
               </td>
             </tr>
           </tbody>
