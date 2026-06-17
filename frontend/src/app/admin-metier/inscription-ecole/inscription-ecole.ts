@@ -65,63 +65,65 @@ export class InscriptionEcoleComponent {
   }
 
   soumettreInscription() {
-  if (!this.nouvelleEcole.nom || !this.nouvelleEcole.ville || !this.nouvelleEcole.niveaux || !this.nouvelleEcole.email_contact) {
-    this.message = 'Veuillez remplir tous les champs obligatoires (*)';
-    this.messageType = 'danger';
-    return;
-  }
-
-  this.chargement = true;
-  this.message = '';
-
-  const formData = new FormData();
-  formData.append('nom', this.nouvelleEcole.nom);
-  formData.append('ville', this.nouvelleEcole.ville);
-  formData.append('niveaux', this.nouvelleEcole.niveaux);
-  formData.append('capacite_eleves', String(this.nouvelleEcole.capacite_eleves || 0));
-  formData.append('email_contact', this.nouvelleEcole.email_contact);
-  formData.append('telephone', this.nouvelleEcole.telephone || '');
-  formData.append('site_web', this.nouvelleEcole.site_web || '');
-
-  if (this.fichiers.autorisation) {
-    formData.append('document_autorisation', this.fichiers.autorisation);
-  }
-  if (this.fichiers.identite) {
-    formData.append('document_identite', this.fichiers.identite);
-  }
-  if (this.fichiers.justificatif) {
-    formData.append('document_justificatif', this.fichiers.justificatif);
-  }
-
-  const headers = this.authService['getHeaders']();
-  
-  this.http.post(
-    'http://localhost:8000/api/ecoles-inscription/',
-    formData,
-    headers
-  ).subscribe({
-    next: (response: any) => {
-      this.chargement = false;
-      this.messageType = 'success';
-      this.message = `✅ ${response.message}`;
-      this.resetFormulaire();
-      setTimeout(() => {
-        this.router.navigate(['/admin-metier']);
-      }, 3000);
-    },
-    error: (err) => {
-      this.chargement = false;
+    // ⚡ NOUVEAU : 1. Vérification des champs textes
+    if (!this.nouvelleEcole.nom || !this.nouvelleEcole.ville || !this.nouvelleEcole.niveaux || !this.nouvelleEcole.email_contact) {
+      this.message = 'Veuillez remplir tous les champs obligatoires (*)';
       this.messageType = 'danger';
-      console.error('Erreur détaillée:', err);
-      if (err.status === 0) {
-        this.message = '❌ Erreur de connexion au serveur. Vérifiez que Django est lancé.';
-      } else if (err.error?.error) {
-        this.message = `❌ ${err.error.error}`;
-      } else {
-        this.message = `❌ Erreur: ${err.message || 'Veuillez réessayer'}`;
-      }
+      return;
     }
-  });
-}
-  
+
+    // ⚡ NOUVEAU : 2. Vérification stricte de la présence des 3 fichiers
+    if (!this.fichiers.autorisation || !this.fichiers.identite || !this.fichiers.justificatif) {
+      this.message = 'Veuillez importer tous les documents requis (Autorisation, Identité et Justificatif de domicile).';
+      this.messageType = 'danger';
+      return;
+    }
+
+    this.chargement = true;
+    this.message = '';
+
+    const formData = new FormData();
+    formData.append('nom', this.nouvelleEcole.nom);
+    formData.append('ville', this.nouvelleEcole.ville);
+    formData.append('niveaux', this.nouvelleEcole.niveaux);
+    formData.append('capacite_eleves', String(this.nouvelleEcole.capacite_eleves || 0));
+    formData.append('email_contact', this.nouvelleEcole.email_contact);
+    formData.append('telephone', this.nouvelleEcole.telephone || '');
+    formData.append('site_web', this.nouvelleEcole.site_web || '');
+
+    // Puisque les fichiers sont obligatoires, plus besoin des "if", on les ajoute directement
+    formData.append('document_autorisation', this.fichiers.autorisation);
+    formData.append('document_identite', this.fichiers.identite);
+    formData.append('document_justificatif', this.fichiers.justificatif);
+
+    const headers = this.authService['getHeaders']();
+    
+    this.http.post(
+      'http://localhost:8000/api/ecoles-inscription/',
+      formData,
+      headers
+    ).subscribe({
+      next: (response: any) => {
+        this.chargement = false;
+        this.messageType = 'success';
+        this.message = `✅ ${response.message}`;
+        this.resetFormulaire();
+        setTimeout(() => {
+          this.router.navigate(['/admin-metier']);
+        }, 3000);
+      },
+      error: (err) => {
+        this.chargement = false;
+        this.messageType = 'danger';
+        console.error('Erreur détaillée:', err);
+        if (err.status === 0) {
+          this.message = '❌ Erreur de connexion au serveur. Vérifiez que Django est lancé.';
+        } else if (err.error?.error) {
+          this.message = `❌ ${err.error.error}`;
+        } else {
+          this.message = `❌ Erreur: ${err.message || 'Veuillez réessayer'}`;
+        }
+      }
+    });
+  }
 }
