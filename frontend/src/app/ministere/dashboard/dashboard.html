@@ -1,5 +1,4 @@
 <div class="container-fluid px-4 py-4">
-  <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h1 class="display-6 fw-bold mb-0">Ministère de l'Éducation Nationale</h1>
@@ -15,7 +14,6 @@
     </div>
   </div>
 
-  <!-- Cartes KPI -->
   <div class="row g-4 mb-4">
     <div class="col-md-3" *ngFor="let stat of stats">
       <div class="card border-0 shadow-sm h-100">
@@ -35,7 +33,6 @@
     </div>
   </div>
 
-  <!-- Vue par Région -->
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white border-0 pt-4">
       <div class="d-flex justify-content-between align-items-center">
@@ -88,7 +85,6 @@
     </div>
   </div>
 
-  <!-- Rapports et Alertes -->
   <div class="row g-4">
     <div class="col-md-8">
       <div class="card border-0 shadow-sm">
@@ -137,7 +133,6 @@
     </div>
 
     <div class="col-md-4">
-      <!-- Validation en attente -->
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-body text-center py-4">
           <i class="bi bi-clock-history fs-1 text-warning mb-2"></i>
@@ -149,7 +144,6 @@
         </div>
       </div>
 
-      <!-- Modal simple -->
       <div class="modal" [class.show]="showModal" [style.display]="showModal ? 'block' : 'none'" style="background-color: rgba(0,0,0,0.5)">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
@@ -206,7 +200,6 @@
         </div>
       </div>
 
-      <!-- Alertes -->
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-0 pt-4">
           <h5 class="fw-bold mb-0">
@@ -230,64 +223,137 @@
         </div>
       </div>
     </div>
-          <!-- Section Demandes d'inscription d'écoles - Ministère -->
-      <div class="card border-0 shadow-sm mt-4">
-        <div class="card-header bg-white border-0 pt-4">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h5 class="fw-bold mb-0">
-                <i class="bi bi-building-check text-success"></i> Validation des nouvelles écoles
-              </h5>
-              <small class="text-muted">Validez les écoles après l'Admin Métier</small>
-            </div>
-          </div>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-              <thead class="table-light">
-                <tr>
-                  <th class="ps-3">École</th>
-                  <th>Ville</th>
-                  <th>Niveaux</th>
-                  <th>Validé par Admin</th>
-                  <th>Statut</th>
-                  <th class="text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngIf="demandesEcolesMinistere.length === 0">
-                  <td colspan="6" class="text-center py-4 text-muted">
-                    <i class="bi bi-inbox fs-3"></i>
-                    <p class="mb-0">Aucune école en attente de validation</p>
-                  </td>
-                </tr>
-                <tr *ngFor="let demande of demandesEcolesMinistere">
-                  <td class="ps-3 fw-semibold">{{ demande.nom }}</td>
-                  <td>{{ demande.ville }}</td>
-                  <td>{{ demande.niveaux }}</td>
-                  <td>{{ demande.date_validation_admin | date:'dd/MM/yyyy' }}</td>
-                  <td>
-                    <span class="badge bg-info text-dark">
-                      {{ demande.statut }}
-                    </span>
-                  </td>
-                  <td class="text-center">
-                    <div class="btn-group btn-group-sm" role="group">
-                      <button class="btn btn-outline-success" (click)="validerEcoleMinistere(demande)" title="Valider">
-                        <i class="bi bi-check-lg"></i> Valider
-                      </button>
-                      <button class="btn btn-outline-danger" (click)="refuserEcoleMinistere(demande)" title="Refuser">
-                        <i class="bi bi-x-lg"></i> Refuser
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+  </div> <div class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-white border-0 pt-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="fw-bold mb-0">
+            <i class="bi bi-building-check text-success"></i> Validation des nouvelles écoles
+          </h5>
+          <small class="text-muted">Validez les écoles après l'Admin Métier</small>
         </div>
       </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">École</th>
+              <th>Ville</th>
+              <th>Niveaux</th>
+              <th>Validé par Admin</th>
+              <th>Statut</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="demandesEcolesMinistere.length === 0">
+              <td colspan="6" class="text-center py-4 text-muted">
+                <i class="bi bi-inbox fs-3"></i>
+                <p class="mb-0">Aucune école en attente de validation</p>
+              </td>
+            </tr>
+            <tr *ngFor="let demande of demandesEcolesMinistere">
+              <td class="ps-3 fw-semibold">{{ demande.nom }}</td>
+              <td>{{ demande.ville }}</td>
+              <td>{{ demande.niveaux }}</td>
+              <td>{{ demande.date_validation_admin | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <span class="badge bg-info text-dark">
+                  {{ demande.statut }}
+                </span>
+              </td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-info text-white" (click)="voirDetailsEcole(demande)">
+                  <i class="bi bi-eye"></i> Examiner la fiche
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
       
+</div>
+
+<div class="modal" tabindex="-1" [class.show]="showEcoleModal" [style.display]="showEcoleModal ? 'block' : 'none'" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" *ngIf="ecoleSelectionnee">
+      
+      <div class="modal-header bg-light">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-building me-2 text-primary"></i>
+          Fiche d'établissement : {{ ecoleSelectionnee.nom }}
+        </h5>
+        <button type="button" class="btn-close" (click)="fermerEcoleModal()"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <div class="row g-4">
+          
+          <div class="col-md-6">
+            <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">Informations Générales</h6>
+            <p class="mb-1"><strong>Ville :</strong> {{ ecoleSelectionnee.ville }}</p>
+            <p class="mb-1"><strong>Niveaux :</strong> {{ ecoleSelectionnee.niveaux }}</p>
+            <p class="mb-1"><strong>Capacité :</strong> {{ ecoleSelectionnee.capacite_eleves }} élèves</p>
+            <p class="mb-1"><strong>Demande déposée le :</strong> {{ ecoleSelectionnee.date_demande | date:'dd/MM/yyyy' }}</p>
+          </div>
+
+          <div class="col-md-6">
+            <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">Contact & Coordonnées</h6>
+            <p class="mb-1"><strong>Email :</strong> <a href="mailto:{{ ecoleSelectionnee.email_contact }}">{{ ecoleSelectionnee.email_contact }}</a></p>
+            <p class="mb-1"><strong>Téléphone :</strong> {{ ecoleSelectionnee.telephone || 'Non renseigné' }}</p>
+            <p class="mb-1"><strong>Site Web :</strong> 
+              <a *ngIf="ecoleSelectionnee.site_web" [href]="ecoleSelectionnee.site_web" target="_blank">{{ ecoleSelectionnee.site_web }}</a>
+              <span *ngIf="!ecoleSelectionnee.site_web" class="text-muted">Non renseigné</span>
+            </p>
+          </div>
+
+          <div class="col-12 mt-4">
+            <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">Documents Réglementaires</h6>
+            <div class="d-flex gap-3 flex-wrap">
+              
+              <a *ngIf="ecoleSelectionnee.document_autorisation" 
+                 [href]="getDocumentUrl(ecoleSelectionnee.document_autorisation)" 
+                 target="_blank" 
+                 class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-file-earmark-pdf"></i> Autorisation d'ouverture
+              </a>
+              <span *ngIf="!ecoleSelectionnee.document_autorisation" class="badge bg-secondary">Autorisation manquante</span>
+
+              <a *ngIf="ecoleSelectionnee.document_identite" 
+                 [href]="getDocumentUrl(ecoleSelectionnee.document_identite)" 
+                 target="_blank" 
+                 class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-person-badge"></i> Pièce d'identité
+              </a>
+              <span *ngIf="!ecoleSelectionnee.document_identite" class="badge bg-secondary">Identité manquante</span>
+
+              <a *ngIf="ecoleSelectionnee.document_justificatif" 
+                 [href]="getDocumentUrl(ecoleSelectionnee.document_justificatif)" 
+                 target="_blank" 
+                 class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-house-door"></i> Justificatif de domicile
+              </a>
+              <span *ngIf="!ecoleSelectionnee.document_justificatif" class="badge bg-secondary">Justificatif manquant</span>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-outline-danger" (click)="refuserEcoleMinistere(ecoleSelectionnee); fermerEcoleModal()">
+          <i class="bi bi-x-circle"></i> Refuser
+        </button>
+        <button type="button" class="btn btn-success" (click)="validerEcoleMinistere(ecoleSelectionnee); fermerEcoleModal()">
+          <i class="bi bi-check-circle"></i> Valider définitivement
+        </button>
+      </div>
+
+    </div>
   </div>
 </div>

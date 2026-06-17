@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, afterNextRender, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -23,12 +23,8 @@ interface Demande {
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
-export class DashboardComponent implements OnInit {
-  constructor(
-    private router: Router,
-    private http: HttpClient
-  ) {}
-
+export class DashboardComponent {
+  
   stats = [
     { label: 'Établissements supervisés', value: 173, color: 'primary', icon: 'building', change: '+12%' },
     { label: 'Élèves total', value: '42,847', color: 'success', icon: 'people', change: '+8%' },
@@ -60,17 +56,27 @@ export class DashboardComponent implements OnInit {
   demandesMinistere: Demande[] = [];
   showModal = false;
   demandesEcolesMinistere: any[] = [];
+  ecoleSelectionnee: any = null;
+  showEcoleModal = false;
 
-  ngOnInit() {
-    this.chargerDemandesMinistere();
-    this.chargerDemandesEcolesMinistere();
+  constructor(
+    private router: Router,
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) {
+    afterNextRender(() => {
+      this.chargerDemandesMinistere();
+      this.chargerDemandesEcolesMinistere();
+    });
   }
 
   private getHeaders(): { headers: HttpHeaders } {
-    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
     let headers = new HttpHeaders();
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
+    if (typeof localStorage !== 'undefined') {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+      if (token) {
+        headers = headers.set('Authorization', `Bearer ${token}`);
+      }
     }
     return { headers: headers };
   }
@@ -83,6 +89,7 @@ export class DashboardComponent implements OnInit {
       next: (data) => {
         this.demandesMinistere = data.filter(d => d.statut === 'Validé par Admin Métier');
         console.log('Demandes pour ministère:', this.demandesMinistere);
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Erreur chargement demandes', err);
@@ -91,13 +98,14 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-    chargerDemandesEcolesMinistere() {
+  chargerDemandesEcolesMinistere() {
     this.http.get<any[]>(
       'http://localhost:8000/api/ecoles-inscription/',
       this.getHeaders()
     ).subscribe({
       next: (data) => {
         this.demandesEcolesMinistere = data;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Erreur chargement écoles', err);
@@ -155,52 +163,51 @@ export class DashboardComponent implements OnInit {
   }
 
   validerEcoleMinistere(demande: any) {
-  if (confirm(`Valider définitivement l'école ${demande.nom} ?`)) {
-    const ecoleId = demande.id;
-    console.log('Validation Ministère ID (UUID):', ecoleId);
-    
-    this.http.patch(
-      `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
-      { action: 'valider' },
-      this.getHeaders()
-    ).subscribe({
-      next: (response: any) => {
-        alert(`✅ ${response.message}`);
-        this.chargerDemandesEcolesMinistere();
-      },
-      error: (err) => {
-        console.error('Erreur détaillée validation Ministère:', err);
-        const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
-        alert(`❌ Erreur: ${errorMsg}`);
-      }
-    });
+    if (confirm(`Valider définitivement l'école ${demande.nom} ?`)) {
+      const ecoleId = demande.id;
+      console.log('Validation Ministère ID (UUID):', ecoleId);
+      
+      this.http.patch(
+        `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
+        { action: 'valider' },
+        this.getHeaders()
+      ).subscribe({
+        next: (response: any) => {
+          alert(`✅ ${response.message}`);
+          this.chargerDemandesEcolesMinistere();
+        },
+        error: (err) => {
+          console.error('Erreur détaillée validation Ministère:', err);
+          const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
+          alert(`❌ Erreur: ${errorMsg}`);
+        }
+      });
+    }
   }
-}
 
-refuserEcoleMinistere(demande: any) {
-  if (confirm(`Refuser l'école ${demande.nom} ?`)) {
-    const ecoleId = demande.id;
-    console.log('Refus Ministère ID (UUID):', ecoleId);
-    
-    this.http.patch(
-      `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
-      { action: 'refuser' },
-      this.getHeaders()
-    ).subscribe({
-      next: (response: any) => {
-        alert(`❌ ${response.message}`);
-        this.chargerDemandesEcolesMinistere();
-      },
-      error: (err) => {
-        console.error('Erreur détaillée refus Ministère:', err);
-        const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
-        alert(`❌ Erreur: ${errorMsg}`);
-      }
-    });
+  refuserEcoleMinistere(demande: any) {
+    if (confirm(`Refuser l'école ${demande.nom} ?`)) {
+      const ecoleId = demande.id;
+      console.log('Refus Ministère ID (UUID):', ecoleId);
+      
+      this.http.patch(
+        `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
+        { action: 'refuser' },
+        this.getHeaders()
+      ).subscribe({
+        next: (response: any) => {
+          alert(`❌ ${response.message}`);
+          this.chargerDemandesEcolesMinistere();
+        },
+        error: (err) => {
+          console.error('Erreur détaillée refus Ministère:', err);
+          const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
+          alert(`❌ Erreur: ${errorMsg}`);
+        }
+      });
+    }
   }
-}
     
-  // NOUVELLE MÉTHODE POUR TÉLÉCHARGER LES DOCUMENTS
   telechargerDocument(demande: Demande) {
     if (!demande.nb_fichiers || demande.nb_fichiers === 0) {
       alert('Aucun document disponible pour cette demande');
@@ -255,5 +262,21 @@ refuserEcoleMinistere(demande: any) {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     this.router.navigate(['/login']);
+  }
+
+  voirDetailsEcole(ecole: any) {
+    this.ecoleSelectionnee = ecole;
+    this.showEcoleModal = true;
+  }
+
+  fermerEcoleModal() {
+    this.showEcoleModal = false;
+    this.ecoleSelectionnee = null;
+  }
+
+  getDocumentUrl(chemin: string): string {
+    if (!chemin) return '';
+    if (chemin.startsWith('http')) return chemin;
+    return `http://localhost:8000${chemin}`;
   }
 }

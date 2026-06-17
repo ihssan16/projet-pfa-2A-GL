@@ -15,12 +15,15 @@ import { LogService } from '../../services/log';
 })
 export class GestionUtilisateursComponent implements OnInit {
   utilisateurs: any[] = [];
-  ecolesDisponibles: any[] = []; 
   chargement = false;
   erreur = '';
   succes = '';
-  afficherFormulaire = false;
   filtreRole = '';
+
+  // ⚡ Variables de pagination ajoutées
+  urlSuivante: string | null = null;
+  urlPrecedente: string | null = null;
+  totalItems: number = 0;
 
   roles = [
     { value: 'ADMIN_METIER', label: 'Admin Métier' },
@@ -28,12 +31,6 @@ export class GestionUtilisateursComponent implements OnInit {
     { value: 'MINISTERE',    label: 'Ministère' },
     { value: 'ETUDIANT',     label: 'Parent / Étudiant' },
   ];
-
-  nouveauUser = {
-    email: '', first_name: '', last_name: '',
-    role: 'ECOLE', password: '', 
-    ecole_nom: '', ecole_ville: '', ecole_niveaux: '', ecole_id: '' 
-  };
 
   constructor(
     private authService: AuthService, 
@@ -47,25 +44,27 @@ export class GestionUtilisateursComponent implements OnInit {
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.chargerUtilisateurs();
-      this.chargerEcoles(); 
     }
   }
 
-  chargerEcoles() {
-    this.http.get('http://localhost:8000/api/ecoles/').subscribe({
-      next: (data: any) => { this.ecolesDisponibles = data; this.cdr.detectChanges(); },
-      error: (err) => console.error("Échec chargement écoles :", err)
-    });
-  }
-
-  chargerUtilisateurs() {
+  // ⚡ Méthode mise à jour pour gérer la pagination et les filtres
+  chargerUtilisateurs(url?: string | null) {
     this.chargement = true;
     this.erreur = ''; 
 
-    this.authService.listerUtilisateurs(this.filtreRole || undefined).subscribe({
+    let requeteUrl = url || 'http://localhost:8000/api/utilisateurs/';
+    if (!url && this.filtreRole) {
+      requeteUrl += `?role=${this.filtreRole}`;
+    }
+
+    this.http.get(requeteUrl, this.authService['getHeaders']()).subscribe({
       next: (data: any) => {
-        // On récupère les données
-        this.utilisateurs = data.results || data;
+        // Extraction des données de pagination de Django
+        this.utilisateurs = data.results ? data.results : (Array.isArray(data) ? data : []);
+        this.urlSuivante = data.next || null;
+        this.urlPrecedente = data.previous || null;
+        this.totalItems = data.count || this.utilisateurs.length;
+
         this.chargement = false;
         this.cdr.detectChanges(); 
       },
@@ -78,68 +77,6 @@ export class GestionUtilisateursComponent implements OnInit {
         } else {
           this.erreur = "Erreur de connexion au serveur. Vérifiez la console (F12).";
         }
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-
-  creerUtilisateur() {
-    console.log("Bouton cliqué ! Voici les données captées :", this.nouveauUser);
-
-    this.erreur = ''; 
-    this.succes = '';
-
-    if (!this.nouveauUser.email || this.nouveauUser.email.trim() === '') {
-      this.erreur = "Veuillez taper l'email manuellement.";
-      this.cdr.detectChanges();
-      return; 
-    }
-    
-    if (!this.nouveauUser.password || this.nouveauUser.password.trim() === '') {
-      this.erreur = "Veuillez taper le mot de passe.";
-      this.cdr.detectChanges(); 
-      return; 
-    }
-
-    if (this.nouveauUser.role === 'ECOLE') {
-      this.nouveauUser.first_name = 'Direction';
-      this.nouveauUser.last_name = this.nouveauUser.ecole_nom || 'École';
-    }
-
-    const payload = { ...this.nouveauUser };
-
-    if (!payload.ecole_id || payload.ecole_id === '' || payload.ecole_id === null) {
-      delete (payload as any).ecole_id;
-    } else {
-      const parsedId = parseInt(payload.ecole_id as string, 10);
-      if (isNaN(parsedId)) {
-        delete (payload as any).ecole_id;
-      } else {
-        payload.ecole_id = parsedId as any;
-      }
-    }
-
-    console.log("Données prêtes à être envoyées à Django :", payload);
-
-    this.authService.creerUtilisateur(payload).subscribe({
-      next: () => {
-        this.succes = `Compte ${payload.email} créé avec succès !`;
-        this.afficherFormulaire = false;
-        
-        this.nouveauUser = { 
-            email: '', first_name: '', last_name: '', role: 'ECOLE', 
-            password: '', ecole_nom: '', ecole_ville: '', 
-            ecole_niveaux: '', ecole_id: '' 
-        };
-        
-        this.chargerUtilisateurs();
-        this.logService.ajouterLog('Création compte ' + this.getRoleLabel(payload.role), payload.email, 'person-plus', 'primary');
-      },
-      error: (err) => {
-        const errorMsg = err.error ? JSON.stringify(err.error) : 'Erreur lors de la création.';
-        this.erreur = "Erreur Django : " + errorMsg;
-        console.error("Détail complet de l'erreur Django :", err.error);
         this.cdr.detectChanges();
       }
     });
@@ -164,9 +101,11 @@ export class GestionUtilisateursComponent implements OnInit {
     this.authService.supprimerUtilisateur(user.id).subscribe({
       next: () => { 
         this.succes = 'Compte supprimé définitivement.'; 
-        
         this.utilisateurs = this.utilisateurs.filter(u => u.id !== user.id);
         
+        // Mise à jour du compteur visuel
+        this.totalItems = this.totalItems > 0 ? this.totalItems - 1 : 0;
+
         this.logService.ajouterLog(
           'Suppression compte', 
           user.email, 

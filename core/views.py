@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.pagination import PageNumberPagination
 from django.contrib.auth.models import update_last_login
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -68,11 +69,31 @@ class ListeUtilisateursView(APIView):
 
     def get(self, request):
         role = request.query_params.get('role', None)
-        users = Utilisateur.objects.all().order_by('role', 'last_name')
+        limit = request.query_params.get('limit', None)
+        
+        users = Utilisateur.objects.all().order_by('-date_joined', 'last_name')
+        
         if role:
             users = users.filter(role=role)
-        serializer = UtilisateurSerializer(users, many=True)
-        return Response(serializer.data)
+            
+        total_count = users.count()
+            
+        if limit:
+            try:
+                users = users[:int(limit)]
+                serializer = UtilisateurSerializer(users, many=True)
+                return Response({
+                    'count': total_count,
+                    'results': serializer.data
+                })
+            except ValueError:
+                pass
+
+        paginator = PageNumberPagination()
+        paginator.page_size = 20
+        result_page = paginator.paginate_queryset(users, request)
+        serializer = UtilisateurSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         serializer = CreerUtilisateurSerializer(data=request.data, context={'request': request})
@@ -80,7 +101,6 @@ class ListeUtilisateursView(APIView):
             user = serializer.save()
             return Response(UtilisateurSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class DetailUtilisateurView(APIView):
     permission_classes = [EstAdminOuEcole]
