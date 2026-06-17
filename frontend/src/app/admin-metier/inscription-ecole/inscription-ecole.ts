@@ -65,14 +65,12 @@ export class InscriptionEcoleComponent {
   }
 
   soumettreInscription() {
-    // ⚡ NOUVEAU : 1. Vérification des champs textes
     if (!this.nouvelleEcole.nom || !this.nouvelleEcole.ville || !this.nouvelleEcole.niveaux || !this.nouvelleEcole.email_contact) {
       this.message = 'Veuillez remplir tous les champs obligatoires (*)';
       this.messageType = 'danger';
       return;
     }
 
-    // ⚡ NOUVEAU : 2. Vérification stricte de la présence des 3 fichiers
     if (!this.fichiers.autorisation || !this.fichiers.identite || !this.fichiers.justificatif) {
       this.message = 'Veuillez importer tous les documents requis (Autorisation, Identité et Justificatif de domicile).';
       this.messageType = 'danger';
@@ -91,7 +89,7 @@ export class InscriptionEcoleComponent {
     formData.append('telephone', this.nouvelleEcole.telephone || '');
     formData.append('site_web', this.nouvelleEcole.site_web || '');
 
-    // Puisque les fichiers sont obligatoires, plus besoin des "if", on les ajoute directement
+  
     formData.append('document_autorisation', this.fichiers.autorisation);
     formData.append('document_identite', this.fichiers.identite);
     formData.append('document_justificatif', this.fichiers.justificatif);

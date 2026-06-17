@@ -47,17 +47,17 @@
             <h5 class="fw-bold mb-3">Documents requis</h5>
           </div>
           <div class="col-md-4">
-            <label class="form-label">Autorisation d'ouverture</label>
+            <label class="form-label">Autorisation d'ouverture *</label>
             <input type="file" class="form-control" (change)="onFileSelected($event, 'autorisation')" accept=".pdf,.jpg,.png">
             <small class="text-muted" *ngIf="fichiers.autorisation">Fichier sélectionné</small>
           </div>
           <div class="col-md-4">
-            <label class="form-label">Pièce d'identité du responsable</label>
+            <label class="form-label">Pièce d'identité du responsable *</label>
             <input type="file" class="form-control" (change)="onFileSelected($event, 'identite')" accept=".pdf,.jpg,.png">
             <small class="text-muted" *ngIf="fichiers.identite">Fichier sélectionné</small>
           </div>
           <div class="col-md-4">
-            <label class="form-label">Justificatif de domicile</label>
+            <label class="form-label">Justificatif de domicile *</label>
             <input type="file" class="form-control" (change)="onFileSelected($event, 'justificatif')" accept=".pdf,.jpg,.png">
             <small class="text-muted" *ngIf="fichiers.justificatif">Fichier sélectionné</small>
           </div>
