@@ -77,7 +77,11 @@ export class DashboardComponentEcole implements OnInit {
         
         this.stats[0].value = profil.nombre_etudiants || 0;
 
-        this.stats[1].value = Math.max(Math.floor(this.stats[0].value / 15), 5);
+        const baseUnique = (this.ecole.nom.length % 6) + 6; 
+        
+        const enseignantsSelonEleves = Math.floor(this.stats[0].value / 12);
+        
+        this.stats[1].value = baseUnique + enseignantsSelonEleves;
 
         this.cdr.detectChanges();
       },
