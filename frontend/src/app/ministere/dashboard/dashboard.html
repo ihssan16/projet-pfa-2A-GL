@@ -15,7 +15,7 @@
   </div>
 
   <div class="row g-4 mb-4">
-    <div class="col-md-3" *ngFor="let stat of stats">
+    <div class="col-md-4" *ngFor="let stat of stats">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start">
@@ -84,61 +84,15 @@
     </div>
   </div>
 
-  <div class="row g-4">
-    <div class="col-md-8">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 pt-4">
-          <div class="d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold mb-0">Rapports Récents</h5>
-            <button class="btn btn-primary btn-sm" (click)="genererRapport()">
-              <i class="bi bi-plus-circle"></i> Générer nouveau rapport
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="list-group list-group-flush">
-            <div class="list-group-item border-0 py-3" *ngFor="let rapport of rapports">
-              <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                  <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
-                    <i class="bi bi-{{ rapport.icon }} text-primary"></i>
-                  </div>
-                  <div>
-                    <div class="fw-bold">{{ rapport.nom }}</div>
-                    <small class="text-muted">
-                      {{ rapport.type }} : {{ rapport.pages }} pages • {{ rapport.date }}
-                    </small>
-                  </div>
-                </div>
-                <div>
-                  <button class="btn btn-sm btn-outline-secondary me-1">
-                    <i class="bi bi-download"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-info">
-                    <i class="bi bi-eye"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card-footer bg-white border-0 pb-4">
-          <div class="d-flex justify-content-between align-items-center">
-            <small class="text-muted">Exporté au format PDF</small>
-            <button class="btn btn-link">Tous les rapports</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-4">
+  <div class="row g-4 mt-2">
+    <div class="col-12">
       <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body text-center py-4">
-          <i class="bi bi-clock-history fs-1 text-warning mb-2"></i>
-          <h2 class="display-4 fw-bold text-warning mb-0">{{ demandesMinistere.length }}</h2>
-          <p class="text-muted mb-3">Dossiers pré-validés par Admin Métier<br>en attente de votre validation finale</p>
-          <button class="btn btn-warning" (click)="ouvrirModal()">
-            <i class="bi bi-folder-check"></i> Valider les dossiers
+        <div class="card-body text-center py-5">
+          <i class="bi bi-folder-check fs-1 text-warning mb-3"></i>
+          <h2 class="display-5 fw-bold text-warning mb-2">{{ demandesMinistere.length }} Dossiers en attente</h2>
+          <p class="text-muted mb-4">Dossiers pré-validés par Admin Métier en attente de votre validation finale.</p>
+          <button class="btn btn-warning btn-lg px-5 text-white" (click)="ouvrirModal()">
+            <i class="bi bi-check2-square me-2"></i> Examiner les dossiers
           </button>
         </div>
       </div>
@@ -198,31 +152,10 @@
           </div>
         </div>
       </div>
-
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 pt-4">
-          <h5 class="fw-bold mb-0">
-            <i class="bi bi-bell-fill text-danger"></i> Alertes
-          </h5>
-        </div>
-        <div class="card-body p-0">
-          <div class="list-group list-group-flush">
-            <div class="list-group-item border-0 py-3" *ngFor="let alerte of alertes">
-              <div class="d-flex">
-                <div class="bg-{{ alerte.type }} bg-opacity-10 rounded p-2 me-3">
-                  <i class="bi bi-{{ alerte.icon }} text-{{ alerte.type }}"></i>
-                </div>
-                <div>
-                  <div class="fw-bold">{{ alerte.message }}</div>
-                  <small class="text-muted">{{ alerte.detail }}</small>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
-  </div> <div class="card border-0 shadow-sm mt-4">
+  </div> 
+  
+  <div class="card border-0 shadow-sm mt-4">
     <div class="card-header bg-white border-0 pt-4">
       <div class="d-flex justify-content-between align-items-center">
         <div>

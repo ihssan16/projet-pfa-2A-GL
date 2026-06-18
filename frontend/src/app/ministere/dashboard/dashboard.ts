@@ -31,23 +31,10 @@ export class DashboardComponent {
   stats: any[] = [
     { label: 'Établissements supervisés', value: 0, color: 'primary', icon: 'building'},
     { label: 'Élèves total', value: '0', color: 'success', icon: 'people'},
-    { label: 'Rapports générés', value: 45, color: 'info', icon: 'file-text'},
     { label: 'Taux de conformité', value: '94%', color: 'warning', icon: 'check-circle'}
   ];
 
   regions: any[] = [];
-
-  rapports = [
-    { nom: 'Rapport annuel 2024-2025', type: 'Annuel', pages: 124, date: '12/05/2025', icon: 'file-text' },
-    { nom: 'Analyse régionale Casablanca', type: 'Régional', pages: 45, date: '10/05/2025', icon: 'pie-chart' },
-    { nom: 'Conformité établissements', type: 'Conformité', pages: 67, date: '08/05/2025', icon: 'check-circle' },
-    { nom: 'Statistiques trimestrielles Q2', type: 'Trimestriel', pages: 38, date: '05/05/2025', icon: 'graph-up' }
-  ];
-
-  alertes = [
-    { type: 'warning', message: 'Documents expirés', detail: '5 établissements', icon: 'exclamation-triangle' },
-    { type: 'info', message: 'Nouveaux dossiers', detail: '12 cette semaine', icon: 'file-plus' }
-  ];
 
   demandesMinistere: Demande[] = [];
   showModal = false;
@@ -84,13 +71,12 @@ export class DashboardComponent {
       this.getHeaders()
     ).subscribe({
       next: (data) => {
-        this.totalEtablissements = data.total_etablissements;
-        this.totalEleves = data.total_eleves;
+        this.totalEtablissements = data.total_etablissements || 0;
+        this.totalEleves = data.total_eleves || 0;
 
-        this.stats[0].value = data.total_etablissements;
-        this.stats[1].value = data.total_eleves.toLocaleString('fr-FR'); 
-        this.stats[2].value = data.rapports_generes;
-        this.stats[3].value = data.taux_conformite + '%';
+        this.stats[0].value = this.totalEtablissements;
+        this.stats[1].value = this.totalEleves.toLocaleString('fr-FR'); 
+        this.stats[2].value = (data.taux_conformite || 94) + '%';
 
         if (data.regions) {
           this.regions = data.regions;
@@ -98,7 +84,12 @@ export class DashboardComponent {
 
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Erreur chargement statistiques', err)
+      error: (err) => {
+        console.error('Erreur chargement statistiques', err);
+        if (err.status === 401) {
+          this.logout();
+        }
+      }
     });
   }
 
@@ -268,10 +259,6 @@ export class DashboardComponent {
 
   voirDetailsRegion(region: string) {
     this.router.navigate(['/ministere/region', region]);
-  }
-
-  genererRapport() {
-    alert('Fonction de génération de rapport à implémenter');
   }
 
   voirDossiers() {
