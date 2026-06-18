@@ -4,18 +4,6 @@ import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
-interface Demande {
-  id: string;
-  reference: string;
-  etablissement: string;
-  ville: string;
-  type: string;
-  date_depot: string;
-  statut: string;
-  nb_fichiers?: number;
-  commentaire?: string;
-}
-
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -36,9 +24,8 @@ export class DashboardComponent {
 
   regions: any[] = [];
 
-  demandesMinistere: Demande[] = [];
-  showModal = false;
-  demandesEcolesMinistere: any[] = [];
+  toutesDemandes: any[] = [];
+  
   ecoleSelectionnee: any = null;
   showEcoleModal = false;
 
@@ -49,8 +36,7 @@ export class DashboardComponent {
   ) {
     afterNextRender(() => {
       this.chargerStatistiques();
-      this.chargerDemandesMinistere();
-      this.chargerDemandesEcolesMinistere();
+      this.chargerToutesLesDemandes();
     });
   }
 
@@ -66,173 +52,121 @@ export class DashboardComponent {
   }
 
   chargerStatistiques() {
-    this.http.get<any>(
-      'http://localhost:8000/api/ministere-stats/',
-      this.getHeaders()
-    ).subscribe({
+    this.http.get<any>('http://localhost:8000/api/ministere-stats/', this.getHeaders()).subscribe({
       next: (data) => {
         this.totalEtablissements = data.total_etablissements || 0;
         this.totalEleves = data.total_eleves || 0;
-
         this.stats[0].value = this.totalEtablissements;
         this.stats[1].value = this.totalEleves.toLocaleString('fr-FR'); 
         this.stats[2].value = (data.taux_conformite || 94) + '%';
-
-        if (data.regions) {
-          this.regions = data.regions;
-        }
-
+        if (data.regions) this.regions = data.regions;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Erreur chargement statistiques', err);
-        if (err.status === 401) {
-          this.logout();
-        }
+        if (err.status === 401) this.logout();
       }
     });
   }
 
-  chargerDemandesMinistere() {
-    this.http.get<any[]>(
-      'http://localhost:8000/api/demandes/',
-      this.getHeaders()
-    ).subscribe({
+  chargerToutesLesDemandes() {
+    this.http.get<any[]>('http://localhost:8000/api/demandes/', this.getHeaders()).subscribe({
       next: (data) => {
-        this.demandesMinistere = data.filter(d => d.statut === 'Validé par Admin Métier');
-        console.log('Demandes pour ministère:', this.demandesMinistere);
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Erreur chargement demandes', err);
-        this.demandesMinistere = [];
+        const dossiers = data.map(d => ({
+          ...d,
+          _typeLigne: 'DOSSIER',
+          _titre: d.reference,
+          _sousTitre: d.etablissement,
+          _date: d.date_depot
+        }));
+        this.integrerDemandes(dossiers, 'DOSSIER');
       }
     });
-  }
 
-  chargerDemandesEcolesMinistere() {
-    this.http.get<any[]>(
-      'http://localhost:8000/api/ecoles-inscription/',
-      this.getHeaders()
-    ).subscribe({
+    this.http.get<any[]>('http://localhost:8000/api/ecoles-inscription/', this.getHeaders()).subscribe({
       next: (data) => {
-        this.demandesEcolesMinistere = data;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Erreur chargement écoles', err);
+        const ecoles = data.map(d => ({
+          ...d,
+          _typeLigne: 'ECOLE',
+          _titre: d.nom,
+          _sousTitre: d.niveaux,
+          _date: d.date_demande || d.date_validation_admin
+        }));
+        this.integrerDemandes(ecoles, 'ECOLE');
       }
     });
   }
 
-  ouvrirModal() {
-    this.showModal = true;
+  private integrerDemandes(nouvellesDonnees: any[], type: string) {
+    let liste = this.toutesDemandes.filter(d => d._typeLigne !== type);
+    liste = [...liste, ...nouvellesDonnees];
+    this.toutesDemandes = liste.sort((a, b) => new Date(b._date).getTime() - new Date(a._date).getTime());
+    this.cdr.detectChanges();
   }
 
-  fermerModal() {
-    this.showModal = false;
-  }
-
-  validerMinistere(demande: Demande) {
-    if (confirm(`Valider définitivement le dossier ${demande.reference} de ${demande.etablissement} ?`)) {
-      this.http.patch(
-        `http://localhost:8000/api/demandes/${demande.id}/`,
-        { action: 'valider' },
-        this.getHeaders()
-      ).subscribe({
-        next: (response: any) => {
-          alert(`✅ ${response.message}`);
-          this.chargerDemandesMinistere();
-          this.fermerModal();
+  validerMinistere(demande: any) {
+    if (confirm(`Valider définitivement le dossier ${demande._titre} ?`)) {
+      this.http.patch(`http://localhost:8000/api/demandes/${demande.id}/`, { action: 'valider' }, this.getHeaders()).subscribe({
+        next: (res: any) => {
+          alert(`✅ ${res.message}`);
+          const item = this.toutesDemandes.find(d => d.id === demande.id);
+          if (item) item.statut = res.statut || 'Validé par Ministère';
         },
-        error: (err) => {
-          console.error('Erreur validation', err);
-          alert('Erreur lors de la validation: ' + (err.error?.error || err.message));
-        }
+        error: (err) => alert('Erreur: ' + (err.error?.error || err.message))
       });
     }
   }
 
-  refuserMinistere(demande: Demande) {
-    const motif = prompt(`Motif du refus pour ${demande.reference} :`);
+  refuserMinistere(demande: any) {
+    const motif = prompt(`Motif du refus pour ${demande._titre} :`);
     if (motif !== null) {
-      this.http.patch(
-        `http://localhost:8000/api/demandes/${demande.id}/`,
-        { action: 'refuser', commentaire: motif },
-        this.getHeaders()
-      ).subscribe({
-        next: (response: any) => {
-          alert(`❌ ${response.message}`);
-          this.chargerDemandesMinistere();
-          this.fermerModal();
+      this.http.patch(`http://localhost:8000/api/demandes/${demande.id}/`, { action: 'refuser', commentaire: motif }, this.getHeaders()).subscribe({
+        next: (res: any) => {
+          alert(`❌ ${res.message}`);
+          const item = this.toutesDemandes.find(d => d.id === demande.id);
+          if (item) item.statut = res.statut || 'Refusé';
         },
-        error: (err) => {
-          console.error('Erreur refus', err);
-          alert('Erreur lors du refus: ' + (err.error?.error || err.message));
-        }
+        error: (err) => alert('Erreur: ' + (err.error?.error || err.message))
       });
     }
   }
 
   validerEcoleMinistere(demande: any) {
-    if (confirm(`Valider définitivement l'école ${demande.nom} ?`)) {
-      const ecoleId = demande.id;
-      console.log('Validation Ministère ID (UUID):', ecoleId);
-      
-      this.http.patch(
-        `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
-        { action: 'valider' },
-        this.getHeaders()
-      ).subscribe({
-        next: (response: any) => {
-          alert(`✅ ${response.message}`);
-          this.chargerDemandesEcolesMinistere();
+    if (confirm(`Valider définitivement l'école ${demande._titre} ?`)) {
+      this.http.patch(`http://localhost:8000/api/ecoles-inscription/${demande.id}/`, { action: 'valider' }, this.getHeaders()).subscribe({
+        next: (res: any) => {
+          alert(`✅ ${res.message}`);
+          const item = this.toutesDemandes.find(d => d.id === demande.id);
+          if (item) item.statut = res.statut || 'Validé par Ministère';
+          this.fermerEcoleModal();
         },
-        error: (err) => {
-          console.error('Erreur détaillée validation Ministère:', err);
-          const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
-          alert(`❌ Erreur: ${errorMsg}`);
-        }
+        error: (err) => alert('Erreur: ' + (err.error?.error || err.message))
       });
     }
   }
 
   refuserEcoleMinistere(demande: any) {
-    if (confirm(`Refuser l'école ${demande.nom} ?`)) {
-      const ecoleId = demande.id;
-      console.log('Refus Ministère ID (UUID):', ecoleId);
-      
-      this.http.patch(
-        `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
-        { action: 'refuser' },
-        this.getHeaders()
-      ).subscribe({
-        next: (response: any) => {
-          alert(`❌ ${response.message}`);
-          this.chargerDemandesEcolesMinistere();
+    if (confirm(`Refuser l'école ${demande._titre} ?`)) {
+      this.http.patch(`http://localhost:8000/api/ecoles-inscription/${demande.id}/`, { action: 'refuser' }, this.getHeaders()).subscribe({
+        next: (res: any) => {
+          alert(`❌ ${res.message}`);
+          const item = this.toutesDemandes.find(d => d.id === demande.id);
+          if (item) item.statut = res.statut || 'Refusée';
+          this.fermerEcoleModal();
         },
-        error: (err) => {
-          console.error('Erreur détaillée refus Ministère:', err);
-          const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
-          alert(`❌ Erreur: ${errorMsg}`);
-        }
+        error: (err) => alert('Erreur: ' + (err.error?.error || err.message))
       });
     }
   }
-    
-  telechargerDocument(demande: Demande) {
+
+  telechargerDocument(demande: any) {
     if (!demande.nb_fichiers || demande.nb_fichiers === 0) {
       alert('Aucun document disponible pour cette demande');
       return;
     }
-    
-    this.http.get(
-      `http://localhost:8000/api/demandes/${demande.id}/documents/`,
-      this.getHeaders()
-    ).subscribe({
-      next: (response: any) => {
-        if (response.documents && response.documents.length > 0) {
-          response.documents.forEach((doc: any) => {
+    this.http.get(`http://localhost:8000/api/demandes/${demande.id}/documents/`, this.getHeaders()).subscribe({
+      next: (res: any) => {
+        if (res.documents && res.documents.length > 0) {
+          res.documents.forEach((doc: any) => {
             const link = document.createElement('a');
             link.href = `http://localhost:8000/api/demandes/${demande.id}/download/${encodeURIComponent(doc.name)}`;
             link.download = doc.name;
@@ -244,11 +178,17 @@ export class DashboardComponent {
           alert('Aucun document disponible');
         }
       },
-      error: (err) => {
-        console.error('Erreur téléchargement', err);
-        alert('Erreur lors du téléchargement');
-      }
+      error: () => alert('Erreur lors du téléchargement')
     });
+  }
+
+  getStatutBadge(statut: string): string {
+    if (!statut) return 'bg-secondary';
+    const s = statut.toLowerCase();
+    if (s.includes('refus')) return 'bg-danger';
+    if (s.includes('attente') || s.includes('admin')) return 'bg-warning text-dark';
+    if (s.includes('ministère') || s.includes('active')) return 'bg-success';
+    return 'bg-info text-dark';
   }
 
   getConformiteClass(conformite: number): string {
@@ -257,14 +197,8 @@ export class DashboardComponent {
     return 'bg-danger';
   }
 
-  voirDetailsRegion(region: string) {
-    this.router.navigate(['/ministere/region', region]);
-  }
-
-  voirDossiers() {
-    this.router.navigate(['/ministere/validation']);
-  }
-
+  voirDetailsRegion(region: string) { this.router.navigate(['/ministere/region', region]); }
+  
   logout() {
     localStorage.removeItem('access');
     localStorage.removeItem('access_token');
@@ -286,5 +220,10 @@ export class DashboardComponent {
     if (!chemin) return '';
     if (chemin.startsWith('http')) return chemin;
     return `http://localhost:8000${chemin}`;
+  }
+  
+  estTraitee(statut: string): boolean {
+    const s = statut?.toLowerCase() || '';
+    return s.includes('refus') || s.includes('ministère') || s.includes('active');
   }
 }

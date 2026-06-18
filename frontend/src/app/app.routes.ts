@@ -16,7 +16,6 @@ import { GestionElevesComponent } from './ecole/gestion-eleves/gestion-eleves';
 
 // Ministère
 import { DashboardComponent as MinistereDashboard } from './ministere/dashboard/dashboard';
-import { RapportsComponent } from './ministere/rapports/rapports';
 
 // Parent
 import { DashboardComponent as ParentDashboard } from './parent/dashboard/dashboard';
@@ -50,7 +49,6 @@ export const routes: Routes = [
   
   // Ministère
   { path: 'ministere', component: MinistereDashboard },
-  { path: 'ministere/rapports', component: RapportsComponent },
   
   // Parent
   { path: 'parent', component: ParentDashboard },

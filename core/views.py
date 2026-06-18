@@ -264,7 +264,8 @@ class DemandeView(APIView):
         elif request.user.role == 'ADMIN_METIER':
             demandes = Demande.objects.filter(statut__in=['EN_ATTENTE', 'EN_COURS'])
         elif request.user.role == 'MINISTERE':
-            demandes = Demande.objects.filter(statut='VALIDE_ADMIN')
+            # Garde l'historique des demandes
+            demandes = Demande.objects.filter(statut__in=['VALIDE_ADMIN', 'VALIDE_MINISTERE', 'REFUSE'])
         else:
             demandes = Demande.objects.all()
         
@@ -412,7 +413,11 @@ class EcoleInscriptionView(APIView):
                                           est_demande_inscription=True
             )        
         elif request.user.role == 'MINISTERE':
-            ecoles = Ecole.objects.filter(statut_inscription='VALIDE_ADMIN', est_demande_inscription=True)
+            # Garde l'historique complet pour le Ministère
+            ecoles = Ecole.objects.filter(
+                statut_inscription__in=['VALIDE_ADMIN', 'VALIDE_MINISTERE', 'REFUSEE', 'ACTIVE'], 
+                est_demande_inscription=True
+            )
         elif request.user.role == 'ADMIN_SYS':
             ecoles = Ecole.objects.filter(statut_inscription='VALIDE_MINISTERE', est_demande_inscription=True)
         else:
