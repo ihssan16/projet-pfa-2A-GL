@@ -112,7 +112,7 @@ class ProfilSerializer(serializers.ModelSerializer):
 
     def get_nombre_etudiants(self, obj):
         if hasattr(obj, 'profil_ecole') and obj.profil_ecole:
-            return obj.profil_ecole.etudiants.count()
+            return Etudiant.objects.filter(ecole=obj.profil_ecole).count()
         return 0
 
     def get_profil_etudiant(self, obj):

@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http'; 
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router'; 
 import { FormsModule } from '@angular/forms'; 
 
@@ -11,13 +11,13 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
-
 export class DashboardComponentEcole implements OnInit {
-  
+
   constructor(
     private router: Router, 
     private http: HttpClient,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object 
   ) {}
 
   ecole: any = {
@@ -28,7 +28,7 @@ export class DashboardComponentEcole implements OnInit {
 
   stats = [
     { label: 'Élèves inscrits', value: 0, icon: 'people', color: 'primary', change: '' },
-    { label: 'Enseignants', value: 42, icon: 'person-badge', color: 'success', change: '+3' },
+    { label: 'Enseignants', value: 0, icon: 'person-badge', color: 'success', change: '+3' },
     { label: 'Documents', value: 0, icon: 'file-earmark-text', color: 'info', change: '' },
     { label: 'Demandes', value: 0, icon: 'files', color: 'warning', change: '' }
   ];
@@ -48,15 +48,20 @@ export class DashboardComponentEcole implements OnInit {
   mesDemandes: any[] = [];
 
   ngOnInit() {
-    this.chargerDonneesCloud();
-    this.chargerDemandes();
+    if (isPlatformBrowser(this.platformId)) {
+      this.chargerDonneesCloud();
+      this.chargerDemandes();
+
+    }
   }
 
   private getHeaders(): { headers: HttpHeaders } {
-    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
     let headers = new HttpHeaders();
-    if (token) {
-      headers = headers.set('Authorization', `Bearer ${token}`);
+    if (typeof localStorage !== 'undefined') {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+      if (token) {
+        headers = headers.set('Authorization', `Bearer ${token}`);
+      }
     }
     return { headers: headers };
   }
@@ -69,7 +74,11 @@ export class DashboardComponentEcole implements OnInit {
           ville: profil.ecole_ville || 'Ville non renseignée',
           niveaux: profil.ecole_niveaux || 'Niveaux non spécifiés'
         };
+        
         this.stats[0].value = profil.nombre_etudiants || 0;
+
+        this.stats[1].value = Math.max(Math.floor(this.stats[0].value / 15), 5);
+
         this.cdr.detectChanges();
       },
       error: (err) => {

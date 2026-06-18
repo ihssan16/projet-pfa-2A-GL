@@ -121,7 +121,7 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-    chargerDemandesEcoles() {
+  chargerDemandesEcoles() {
     this.chargementEcoles = true;
     this.http.get<any[]>(
       'http://localhost:8000/api/ecoles-inscription/',
@@ -186,53 +186,51 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-    validerEcole(demande: any) {
-  if (confirm(`Valider la demande d'inscription de ${demande.nom} ?`)) {
-    const ecoleId = demande.id;
-    console.log('Validation école ID (UUID):', ecoleId);
-    
-    this.http.patch(
-      `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
-      { action: 'valider' },
-      this.authService['getHeaders']()
-    ).subscribe({
-      next: (response: any) => {
-        alert(`✅ ${response.message}`);
-        this.chargerDemandesEcoles();
-        this.chargerStatsEcoles();
-      },
-      error: (err) => {
-        console.error('Erreur détaillée validation:', err);
-        const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
-        alert(`❌ Erreur: ${errorMsg}`);
-      }
-    });
+  validerEcole(demande: any) {
+    if (confirm(`Valider la demande d'inscription de ${demande.nom} ?`)) {
+      const ecoleId = demande.id;
+      
+      this.http.patch(
+        `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
+        { action: 'valider' },
+        this.authService['getHeaders']()
+      ).subscribe({
+        next: (response: any) => {
+          alert(`✅ ${response.message}`);
+          this.chargerDemandesEcoles();
+          this.chargerStatsEcoles();
+        },
+        error: (err) => {
+          console.error('Erreur détaillée validation:', err);
+          const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
+          alert(`❌ Erreur: ${errorMsg}`);
+        }
+      });
+    }
   }
-}
 
-refuserEcole(demande: any) {
-  if (confirm(`Refuser la demande d'inscription de ${demande.nom} ?`)) {
-    const ecoleId = demande.id;
-    console.log('Refus école ID (UUID):', ecoleId);
-    
-    this.http.patch(
-      `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
-      { action: 'refuser' },
-      this.authService['getHeaders']()
-    ).subscribe({
-      next: (response: any) => {
-        alert(`❌ ${response.message}`);
-        this.chargerDemandesEcoles();
-        this.chargerStatsEcoles();
-      },
-      error: (err) => {
-        console.error('Erreur détaillée refus:', err);
-        const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
-        alert(`❌ Erreur: ${errorMsg}`);
-      }
-    });
+  refuserEcole(demande: any) {
+    if (confirm(`Refuser la demande d'inscription de ${demande.nom} ?`)) {
+      const ecoleId = demande.id;
+      
+      this.http.patch(
+        `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
+        { action: 'refuser' },
+        this.authService['getHeaders']()
+      ).subscribe({
+        next: (response: any) => {
+          alert(`❌ ${response.message}`);
+          this.chargerDemandesEcoles();
+          this.chargerStatsEcoles();
+        },
+        error: (err) => {
+          console.error('Erreur détaillée refus:', err);
+          const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
+          alert(`❌ Erreur: ${errorMsg}`);
+        }
+      });
+    }
   }
-}
 
   voirDetails(demande: Demande) {
     alert(`📋 Dossier: ${demande.reference}\n🏫 Établissement: ${demande.etablissement}\n📍 Ville: ${demande.ville}\n📝 Type: ${demande.type}\n📅 Date: ${demande.date_depot}\n✅ Statut: ${demande.statut}`);
@@ -246,34 +244,55 @@ refuserEcole(demande: any) {
     this.authService.logout();
     this.router.navigate(['/login']);
   }
+
   telechargerDocument(demande: Demande) {
-  if (!demande.nb_fichiers || demande.nb_fichiers === 0) {
-    alert('Aucun document disponible pour cette demande');
-    return;
-  }
-  
-  this.http.get(
-    `http://localhost:8000/api/demandes/${demande.id}/documents/`,
-    this.authService['getHeaders']()
-  ).subscribe({
-    next: (response: any) => {
-      if (response.documents && response.documents.length > 0) {
-        response.documents.forEach((doc: any) => {
-          const link = document.createElement('a');
-          link.href = `http://localhost:8000/api/demandes/${demande.id}/download/${encodeURIComponent(doc.name)}`;
-          link.download = doc.name;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        });
-      } else {
-        alert('Aucun document disponible');
-      }
-    },
-    error: (err) => {
-      console.error('Erreur téléchargement', err);
-      alert('Erreur lors du téléchargement');
+    if (!demande.nb_fichiers || demande.nb_fichiers === 0) {
+      alert('Aucun document disponible pour cette demande');
+      return;
     }
-  });
-}
+    
+    this.http.get(
+      `http://localhost:8000/api/demandes/${demande.id}/documents/`,
+      this.authService['getHeaders']()
+    ).subscribe({
+      next: (response: any) => {
+        if (response.documents && response.documents.length > 0) {
+          
+          response.documents.forEach((doc: any) => {
+            const downloadUrl = `http://localhost:8000/api/demandes/${demande.id}/download/${encodeURIComponent(doc.name)}/`;
+            
+            this.http.get(downloadUrl, {
+              headers: this.authService['getHeaders']().headers,
+              responseType: 'blob' 
+            }).subscribe({
+              next: (blob: Blob) => {
+                const urlObject = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = urlObject;
+                link.download = doc.name; 
+                
+                document.body.appendChild(link);
+                link.click();
+                
+                // Nettoyage de la mémoire
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(urlObject);
+              },
+              error: (errBlob) => {
+                console.error(`Erreur Blob pour ${doc.name}`, errBlob);
+                alert(`Impossible de télécharger ${doc.name}. Erreur 401 contournée, mais le fichier est introuvable ou corrompu.`);
+              }
+            });
+          });
+
+        } else {
+          alert('Aucun document disponible');
+        }
+      },
+      error: (err) => {
+        console.error('Erreur récupération liste documents', err);
+        alert('Erreur lors de la récupération des documents');
+      }
+    });
+  }
 }

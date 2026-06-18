@@ -3,7 +3,6 @@ import random
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-
 def note_aleatoire():
     return random.randint(40, 100)
 
@@ -16,22 +15,16 @@ class Utilisateur(AbstractUser):
         ('ETUDIANT', 'Parent / Étudiant'),
     )
 
-    # Remplacement de l'ID classique par un UUID pour plus de sécurité
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    
-    # Ajout du rôle
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='ETUDIANT')
-    
-    # Dans une appli SaaS moderne, on se connecte souvent avec l'email, pas avec un pseudo
     email = models.EmailField(unique=True)
 
-    # On indique à Django d'utiliser l'email comme identifiant de connexion principal
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     def __str__(self):
         return f"{self.email} - {self.get_role_display()}"
-    
+
 
 class Ecole(models.Model):
     utilisateur = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, related_name='profil_ecole', null=True, blank=True)
@@ -39,13 +32,9 @@ class Ecole(models.Model):
     nom = models.CharField(max_length=255)
     ville = models.CharField(max_length=100, blank=True, null=True)
     niveaux = models.CharField(max_length=100, blank=True, null=True) 
-    
     capacite_eleves = models.IntegerField(default=0)
     est_demande_inscription = models.BooleanField(default=False)
     
-    def __str__(self):
-        return self.nom
-    # NOUVEAUX CHAMPS POUR LE WORKFLOW D'INSCRIPTION
     STATUT_INSCRIPTION_CHOICES = (
         ('EN_ATTENTE_ADMIN', 'En attente Admin Métier'),
         ('VALIDE_ADMIN', 'Validé par Admin Métier'),
@@ -54,22 +43,17 @@ class Ecole(models.Model):
         ('REFUSEE', 'Refusée'),
     )
     
-    statut_inscription = models.CharField(
-        max_length=30, 
-        choices=STATUT_INSCRIPTION_CHOICES, 
-        default='EN_ATTENTE_ADMIN'
-    )
+    statut_inscription = models.CharField(max_length=30, choices=STATUT_INSCRIPTION_CHOICES, default='EN_ATTENTE_ADMIN')
+    
     date_demande = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     date_validation_admin = models.DateTimeField(null=True, blank=True)
     date_validation_ministere = models.DateTimeField(null=True, blank=True)
     date_creation = models.DateTimeField(null=True, blank=True)
     
-    # Documents
     document_autorisation = models.FileField(upload_to='ecoles/documents/', null=True, blank=True)
     document_identite = models.FileField(upload_to='ecoles/documents/', null=True, blank=True)
     document_justificatif = models.FileField(upload_to='ecoles/documents/', null=True, blank=True)
     
-    # Contact
     email_contact = models.EmailField(null=True, blank=True)
     telephone = models.CharField(max_length=20, blank=True, null=True)
     site_web = models.URLField(blank=True, null=True)
@@ -77,13 +61,12 @@ class Ecole(models.Model):
     def __str__(self):
         return self.nom
 
+
 class Etudiant(models.Model):
     utilisateur = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, related_name='profil_etudiant', null=True, blank=True)
-
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name='etudiants', null=True)
     
     niveau = models.CharField(max_length=50, blank=True, null=True) 
-
     genre = models.CharField(max_length=20, blank=True, null=True)
     education_parent = models.CharField(max_length=100, blank=True, null=True) 
     lunch_plan = models.CharField(max_length=50, blank=True, null=True)
@@ -98,6 +81,7 @@ class Etudiant(models.Model):
 
     def __str__(self):
         return f"Étudiant ({self.niveau}) - Math: {self.note_math}"
+
 
 class Demande(models.Model):
     TYPE_CHOICES = (
@@ -118,28 +102,21 @@ class Demande(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.CharField(max_length=50, unique=True, blank=True)
     
-    # Relations
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name='demandes')
     utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='demandes')
     
-    # Informations
     type_demande = models.CharField(max_length=20, choices=TYPE_CHOICES, default='INSCRIPTION')
     statut = models.CharField(max_length=30, choices=STATUT_CHOICES, default='EN_ATTENTE')
     
-    # Dates
     date_depot = models.DateTimeField(auto_now_add=True)
     date_traitement_admin = models.DateTimeField(null=True, blank=True)
     date_traitement_ministere = models.DateTimeField(null=True, blank=True)
     
-    # Documents
-    documents = models.FileField(upload_to='demandes/', null=True, blank=True)
     nombre_fichiers = models.IntegerField(default=0)
     
-    # Commentaires
     commentaire_admin = models.TextField(blank=True, null=True)
     commentaire_ministere = models.TextField(blank=True, null=True)
     
-    # Traitement par
     traite_par_admin = models.ForeignKey(Utilisateur, on_delete=models.SET_NULL, null=True, blank=True, related_name='demandes_traitees_admin')
     traite_par_ministere = models.ForeignKey(Utilisateur, on_delete=models.SET_NULL, null=True, blank=True, related_name='demandes_traitees_ministere')
     
@@ -160,3 +137,11 @@ class Demande(models.Model):
     def __str__(self):
         return f"{self.reference} - {self.ecole.nom} - {self.get_statut_display()}"
 
+
+class DocumentDemande(models.Model):
+    demande = models.ForeignKey(Demande, on_delete=models.CASCADE, related_name='fichiers_joints')
+    fichier = models.FileField(upload_to='demandes/fichiers/')
+    date_ajout = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Document pour {self.demande.reference}"
