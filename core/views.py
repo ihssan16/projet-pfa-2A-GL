@@ -229,7 +229,30 @@ class StatistiquesDemandesView(APIView):
 class DemandeView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def get(self, request, demande_id=None):
+    def get(self, request, demande_id=None, filename=None):
+        if demande_id and filename and 'download' in request.path:
+            try:
+                demande = Demande.objects.get(id=demande_id)
+            except Demande.DoesNotExist:
+                return Response({'error': 'Demande non trouvée'}, status=404)
+            
+            if request.user.role == 'ECOLE':
+                try:
+                    if demande.ecole != request.user.profil_ecole:
+                        return Response({'error': 'Accès non autorisé'}, status=403)
+                except:
+                    return Response({'error': 'Accès non autorisé'}, status=403)
+                    
+            file_path = os.path.join(settings.MEDIA_ROOT, f'demandes/{demande.id}/{filename}')
+            if os.path.exists(file_path):
+                content_type, _ = mimetypes.guess_type(file_path)
+                if not content_type:
+                    content_type = 'application/octet-stream'
+                response = FileResponse(open(file_path, 'rb'), content_type=content_type)
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                return response
+            return Response({'error': 'Fichier non trouvé'}, status=404)
+
         if demande_id and 'documents' in request.path:
             try:
                 demande = Demande.objects.get(id=demande_id)
@@ -238,8 +261,7 @@ class DemandeView(APIView):
             
             if request.user.role == 'ECOLE':
                 try:
-                    ecole = request.user.profil_ecole
-                    if demande.ecole != ecole:
+                    if demande.ecole != request.user.profil_ecole:
                         return Response({'error': 'Accès non autorisé'}, status=403)
                 except:
                     return Response({'error': 'Accès non autorisé'}, status=403)
@@ -257,14 +279,12 @@ class DemandeView(APIView):
         
         if request.user.role == 'ECOLE':
             try:
-                ecole = request.user.profil_ecole
-                demandes = Demande.objects.filter(ecole=ecole)
+                demandes = Demande.objects.filter(ecole=request.user.profil_ecole)
             except:
                 demandes = Demande.objects.none()
         elif request.user.role == 'ADMIN_METIER':
             demandes = Demande.objects.filter(statut__in=['EN_ATTENTE', 'EN_COURS'])
         elif request.user.role == 'MINISTERE':
-            # Garde l'historique des demandes
             demandes = Demande.objects.filter(statut__in=['VALIDE_ADMIN', 'VALIDE_MINISTERE', 'REFUSE'])
         else:
             demandes = Demande.objects.all()
@@ -276,7 +296,7 @@ class DemandeView(APIView):
                 'reference': demande.reference,
                 'etablissement': demande.ecole.nom,
                 'ville': demande.ecole.ville or 'Non spécifiée',
-                'type': demande.get_type_demande_display(),
+                'type': demande.get_type_demande_display(),  
                 'date_depot': demande.date_depot.strftime('%Y-%m-%d'),
                 'nb_fichiers': demande.nombre_fichiers,
                 'statut': demande.get_statut_display(),

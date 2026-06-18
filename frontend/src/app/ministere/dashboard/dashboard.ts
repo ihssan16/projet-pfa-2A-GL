@@ -23,7 +23,6 @@ export class DashboardComponent {
   ];
 
   regions: any[] = [];
-
   toutesDemandes: any[] = [];
   
   ecoleSelectionnee: any = null;
@@ -74,6 +73,7 @@ export class DashboardComponent {
         const dossiers = data.map(d => ({
           ...d,
           _typeLigne: 'DOSSIER',
+          _typeAffiche: d.type ? d.type : 'Demande', 
           _titre: d.reference,
           _sousTitre: d.etablissement,
           _date: d.date_depot
@@ -87,6 +87,7 @@ export class DashboardComponent {
         const ecoles = data.map(d => ({
           ...d,
           _typeLigne: 'ECOLE',
+          _typeAffiche: "Inscription d'Établissement", 
           _titre: d.nom,
           _sousTitre: d.niveaux,
           _date: d.date_demande || d.date_validation_admin
@@ -104,7 +105,7 @@ export class DashboardComponent {
   }
 
   validerMinistere(demande: any) {
-    if (confirm(`Valider définitivement le dossier ${demande._titre} ?`)) {
+    if (confirm(`Valider définitivement la demande ${demande._titre} ?`)) {
       this.http.patch(`http://localhost:8000/api/demandes/${demande.id}/`, { action: 'valider' }, this.getHeaders()).subscribe({
         next: (res: any) => {
           alert(`✅ ${res.message}`);
@@ -158,37 +159,43 @@ export class DashboardComponent {
     }
   }
 
+  // Fonction hyper simplifiée et infaillible pour les dossiers
   telechargerDocument(demande: any) {
     if (!demande.nb_fichiers || demande.nb_fichiers === 0) {
       alert('Aucun document disponible pour cette demande');
       return;
     }
-    this.http.get(`http://localhost:8000/api/demandes/${demande.id}/documents/`, this.getHeaders()).subscribe({
+    
+    this.http.get<any>(`http://localhost:8000/api/demandes/${demande.id}/documents/`, this.getHeaders()).subscribe({
       next: (res: any) => {
         if (res.documents && res.documents.length > 0) {
+          // Ouvre chaque fichier directement dans un nouvel onglet
           res.documents.forEach((doc: any) => {
-            const link = document.createElement('a');
-            link.href = `http://localhost:8000/api/demandes/${demande.id}/download/${encodeURIComponent(doc.name)}`;
-            link.download = doc.name;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            window.open(`http://localhost:8000${doc.url}`, '_blank');
           });
         } else {
           alert('Aucun document disponible');
         }
       },
-      error: () => alert('Erreur lors du téléchargement')
+      error: () => alert('Erreur lors de la récupération des documents')
     });
   }
 
+  // Fonction hyper simplifiée et infaillible pour la modale
+  telechargerFichierSecurise(cheminFichier: string) {
+    if (cheminFichier) {
+      const urlComplete = this.getDocumentUrl(cheminFichier);
+      window.open(urlComplete, '_blank');
+    }
+  }
+
   getStatutBadge(statut: string): string {
-    if (!statut) return 'bg-secondary';
+    if (!statut) return 'badge-soft badge-soft-info';
     const s = statut.toLowerCase();
-    if (s.includes('refus')) return 'bg-danger';
-    if (s.includes('attente') || s.includes('admin')) return 'bg-warning text-dark';
-    if (s.includes('ministère') || s.includes('active')) return 'bg-success';
-    return 'bg-info text-dark';
+    if (s.includes('refus')) return 'badge-soft badge-soft-danger';
+    if (s.includes('attente') || s.includes('admin')) return 'badge-soft badge-soft-warning';
+    if (s.includes('ministère') || s.includes('active')) return 'badge-soft badge-soft-success';
+    return 'badge-soft badge-soft-info';
   }
 
   getConformiteClass(conformite: number): string {
@@ -197,7 +204,9 @@ export class DashboardComponent {
     return 'bg-danger';
   }
 
-  voirDetailsRegion(region: string) { this.router.navigate(['/ministere/region', region]); }
+  voirDetailsRegion(region: string) { 
+    this.router.navigate(['/ministere/region', region]); 
+  }
   
   logout() {
     localStorage.removeItem('access');

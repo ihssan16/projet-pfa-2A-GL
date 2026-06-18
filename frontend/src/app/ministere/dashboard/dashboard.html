@@ -73,7 +73,7 @@
                     <i class="bi" [ngClass]="item._typeLigne === 'ECOLE' ? 'bi-building-add' : 'bi-folder2-open'"></i>
                   </div>
                   <span class="fw-semibold text-secondary small">
-                    {{ item._typeLigne === 'ECOLE' ? 'Nouvelle École' : 'Dossier' }}
+                    {{ item._typeAffiche }}
                   </span>
                 </div>
               </td>
@@ -204,20 +204,22 @@
           <div class="col-12 mt-4">
             <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Documents Réglementaires</h6>
             <div class="d-flex gap-3 flex-wrap">
-              <a *ngIf="ecoleSelectionnee.document_autorisation" [href]="getDocumentUrl(ecoleSelectionnee.document_autorisation)" target="_blank" class="btn btn-light border btn-sm rounded-pill px-3">
+              
+              <button *ngIf="ecoleSelectionnee.document_autorisation" (click)="telechargerFichierSecurise(ecoleSelectionnee.document_autorisation)" class="btn btn-light border btn-sm rounded-pill px-3">
                 <i class="bi bi-file-earmark-pdf text-danger"></i> Autorisation
-              </a>
+              </button>
               <span *ngIf="!ecoleSelectionnee.document_autorisation" class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-2 fw-normal">Autorisation manquante</span>
 
-              <a *ngIf="ecoleSelectionnee.document_identite" [href]="getDocumentUrl(ecoleSelectionnee.document_identite)" target="_blank" class="btn btn-light border btn-sm rounded-pill px-3">
+              <button *ngIf="ecoleSelectionnee.document_identite" (click)="telechargerFichierSecurise(ecoleSelectionnee.document_identite)" class="btn btn-light border btn-sm rounded-pill px-3">
                 <i class="bi bi-person-badge text-primary"></i> Pièce d'identité
-              </a>
+              </button>
               <span *ngIf="!ecoleSelectionnee.document_identite" class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-2 fw-normal">Identité manquante</span>
 
-              <a *ngIf="ecoleSelectionnee.document_justificatif" [href]="getDocumentUrl(ecoleSelectionnee.document_justificatif)" target="_blank" class="btn btn-light border btn-sm rounded-pill px-3">
+              <button *ngIf="ecoleSelectionnee.document_justificatif" (click)="telechargerFichierSecurise(ecoleSelectionnee.document_justificatif)" class="btn btn-light border btn-sm rounded-pill px-3">
                 <i class="bi bi-house-door text-success"></i> Justificatif
-              </a>
+              </button>
               <span *ngIf="!ecoleSelectionnee.document_justificatif" class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-2 fw-normal">Justificatif manquant</span>
+              
             </div>
           </div>
         </div>
