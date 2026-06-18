@@ -24,5 +24,4 @@ urlpatterns = [
     path('demandes/<uuid:demande_id>/download/<str:filename>/', DemandeView.as_view(), name='demande-download'),
     path('ecoles-inscription/', EcoleInscriptionView.as_view(), name='ecoles-inscription'),
     path('ecoles-inscription/<str:ecole_id>/', EcoleInscriptionView.as_view(), name='ecole-inscription-detail'),
-
 ]

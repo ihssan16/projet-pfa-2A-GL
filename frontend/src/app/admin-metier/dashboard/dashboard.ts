@@ -259,9 +259,13 @@ export class DashboardComponent implements OnInit {
         if (response.documents && response.documents.length > 0) {
           
           response.documents.forEach((doc: any) => {
-            const downloadUrl = `http://localhost:8000/api/demandes/${demande.id}/download/${encodeURIComponent(doc.name)}/`;
+            const fileUrl = doc.url ? 
+                            (doc.url.startsWith('http') ? doc.url : 'http://localhost:8000' + doc.url) : 
+                            `http://localhost:8000/media/demandes/${encodeURIComponent(doc.name)}`;
             
-            this.http.get(downloadUrl, {
+            const fileName = doc.name || (doc.url ? doc.url.split('/').pop() : 'document_telecharge');
+
+            this.http.get(fileUrl, {
               headers: this.authService['getHeaders']().headers,
               responseType: 'blob' 
             }).subscribe({
@@ -269,18 +273,18 @@ export class DashboardComponent implements OnInit {
                 const urlObject = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = urlObject;
-                link.download = doc.name; 
+                link.download = fileName; 
                 
                 document.body.appendChild(link);
                 link.click();
                 
-                // Nettoyage de la mémoire
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(urlObject);
               },
               error: (errBlob) => {
-                console.error(`Erreur Blob pour ${doc.name}`, errBlob);
-                alert(`Impossible de télécharger ${doc.name}. Erreur 401 contournée, mais le fichier est introuvable ou corrompu.`);
+                console.warn(`Téléchargement Blob bloqué pour ${fileName}. Lancement du Plan B.`, errBlob);
+                
+                window.open(fileUrl, '_blank');
               }
             });
           });
