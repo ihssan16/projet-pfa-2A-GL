@@ -149,14 +149,36 @@ class MesElevesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        eleves = Utilisateur.objects.filter(
-            role='ETUDIANT',
-            profil_etudiant__ecole__utilisateur=request.user
-        ).order_by('-date_joined') 
-        
-        serializer = UtilisateurSerializer(eleves, many=True)
-        return Response(serializer.data)
+        try:
+            # 1. On identifie l'école de la personne connectée
+            mon_ecole = request.user.profil_ecole
+            
+            # 2. On récupère les profils Etudiant avec leurs infos Utilisateur liées
+            profils_etudiants = Etudiant.objects.filter(ecole=mon_ecole).select_related('utilisateur').order_by('-utilisateur__date_joined')
+            
+            data = []
+            for profil in profils_etudiants:
+                if profil.utilisateur:
+                    # On tente de récupérer le niveau (selon le nom de votre champ dans models.py)
+                    niveau_eleve = getattr(profil, 'niveau', None) or getattr(profil, 'etudiant_niveau', None)
+                    
+                    data.append({
+                        'id': str(profil.utilisateur.id),
+                        'first_name': profil.utilisateur.first_name,
+                        'last_name': profil.utilisateur.last_name,
+                        'email': profil.utilisateur.email,
+                        'last_login': profil.utilisateur.last_login.isoformat() if profil.utilisateur.last_login else None,
+                        'profil_etudiant': {
+                            # On injecte le niveau explicitement pour Angular
+                            'niveau': niveau_eleve
+                        }
+                    })
 
+            return Response(data)
+
+        except Exception as e:
+            print(f"Erreur dans MesElevesView : {e}")
+            return Response([])
 
 class StatsAdminMetierView(APIView):
     permission_classes = [IsAuthenticated]
