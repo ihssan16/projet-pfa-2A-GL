@@ -25,7 +25,6 @@ interface Demande {
 })
 export class DashboardComponent {
   
-  // Nouvelles variables pour les statistiques globales
   totalEtablissements: number = 0;
   totalEleves: number = 0;
 
@@ -36,14 +35,7 @@ export class DashboardComponent {
     { label: 'Taux de conformité', value: '94%', color: 'warning', icon: 'check-circle'}
   ];
 
-  regions = [
-    { nom: 'Casablanca-Settat', etablissements: 42, eleves: 11234, conformite: 96 },
-    { nom: 'Rabat-Salé-Kénitra', etablissements: 38, eleves: 9876, conformite: 95 },
-    { nom: 'Fès-Meknès', etablissements: 31, eleves: 8432, conformite: 92 },
-    { nom: 'Marrakech-Safi', etablissements: 27, eleves: 7123, conformite: 91 },
-    { nom: 'Tanger-Tétouan-Al Hoceïma', etablissements: 23, eleves: 5892, conformite: 93 },
-    { nom: 'Autres régions', etablissements: 12, eleves: 3290, conformite: 88 }
-  ];
+  regions: any[] = [];
 
   rapports = [
     { nom: 'Rapport annuel 2024-2025', type: 'Annuel', pages: 124, date: '12/05/2025', icon: 'file-text' },
@@ -86,7 +78,6 @@ export class DashboardComponent {
     return { headers: headers };
   }
 
-  // --- NOUVELLE FONCTION ---
   chargerStatistiques() {
     this.http.get<any>(
       'http://localhost:8000/api/ministere-stats/',
@@ -100,6 +91,10 @@ export class DashboardComponent {
         this.stats[1].value = data.total_eleves.toLocaleString('fr-FR'); 
         this.stats[2].value = data.rapports_generes;
         this.stats[3].value = data.taux_conformite + '%';
+
+        if (data.regions) {
+          this.regions = data.regions;
+        }
 
         this.cdr.detectChanges();
       },
