@@ -25,11 +25,15 @@ interface Demande {
 })
 export class DashboardComponent {
   
-  stats = [
-    { label: 'Établissements supervisés', value: 173, color: 'primary', icon: 'building', change: '+12%' },
-    { label: 'Élèves total', value: '42,847', color: 'success', icon: 'people', change: '+8%' },
-    { label: 'Rapports générés', value: 45, color: 'info', icon: 'file-text', change: '+3' },
-    { label: 'Taux de conformité', value: '94%', color: 'warning', icon: 'check-circle', change: '+2%' }
+  // Nouvelles variables pour les statistiques globales
+  totalEtablissements: number = 0;
+  totalEleves: number = 0;
+
+  stats: any[] = [
+    { label: 'Établissements supervisés', value: 0, color: 'primary', icon: 'building'},
+    { label: 'Élèves total', value: '0', color: 'success', icon: 'people'},
+    { label: 'Rapports générés', value: 45, color: 'info', icon: 'file-text'},
+    { label: 'Taux de conformité', value: '94%', color: 'warning', icon: 'check-circle'}
   ];
 
   regions = [
@@ -65,6 +69,7 @@ export class DashboardComponent {
     private cdr: ChangeDetectorRef
   ) {
     afterNextRender(() => {
+      this.chargerStatistiques();
       this.chargerDemandesMinistere();
       this.chargerDemandesEcolesMinistere();
     });
@@ -79,6 +84,27 @@ export class DashboardComponent {
       }
     }
     return { headers: headers };
+  }
+
+  // --- NOUVELLE FONCTION ---
+  chargerStatistiques() {
+    this.http.get<any>(
+      'http://localhost:8000/api/ministere-stats/',
+      this.getHeaders()
+    ).subscribe({
+      next: (data) => {
+        this.totalEtablissements = data.total_etablissements;
+        this.totalEleves = data.total_eleves;
+
+        this.stats[0].value = data.total_etablissements;
+        this.stats[1].value = data.total_eleves.toLocaleString('fr-FR'); 
+        this.stats[2].value = data.rapports_generes;
+        this.stats[3].value = data.taux_conformite + '%';
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Erreur chargement statistiques', err)
+    });
   }
 
   chargerDemandesMinistere() {

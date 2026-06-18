@@ -137,7 +137,6 @@ class DetailUtilisateurView(APIView):
         return Response({'detail': 'Compte supprimé définitivement.'}, status=status.HTTP_204_NO_CONTENT)
 
 
-
 class EcoleViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ecole.objects.all()
     serializer_class = EcoleSerializer
@@ -231,14 +230,12 @@ class DemandeView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request, demande_id=None):
-        # Récupérer les documents d'une demande spécifique
         if demande_id and 'documents' in request.path:
             try:
                 demande = Demande.objects.get(id=demande_id)
             except Demande.DoesNotExist:
                 return Response({'error': 'Demande non trouvée'}, status=404)
             
-            # Vérifier l'autorisation
             if request.user.role == 'ECOLE':
                 try:
                     ecole = request.user.profil_ecole
@@ -258,7 +255,6 @@ class DemandeView(APIView):
             
             return Response({'documents': documents})
         
-        # Récupérer la liste des demandes
         if request.user.role == 'ECOLE':
             try:
                 ecole = request.user.profil_ecole
@@ -289,14 +285,12 @@ class DemandeView(APIView):
         return Response(data)
     
     def post(self, request, demande_id=None):
-        # Upload de documents pour une demande existante
         if demande_id and 'upload' in request.path:
             try:
                 demande = Demande.objects.get(id=demande_id)
             except Demande.DoesNotExist:
                 return Response({'error': 'Demande non trouvée'}, status=404)
             
-            # Vérifier l'autorisation
             if request.user.role == 'ECOLE':
                 try:
                     ecole = request.user.profil_ecole
@@ -321,7 +315,6 @@ class DemandeView(APIView):
                 'nb_fichiers': demande.nombre_fichiers
             })
         
-        # Créer une nouvelle demande
         if request.user.role != 'ECOLE':
             return Response({'error': 'Seules les écoles peuvent créer des demandes'}, status=403)
         
@@ -337,7 +330,6 @@ class DemandeView(APIView):
             nombre_fichiers=0,
         )
         
-        # Traiter les fichiers joints
         compteur = 0
         for key, file in request.FILES.items():
             if key != 'type_demande' and key != 'nombre_fichiers':
@@ -415,7 +407,6 @@ class EcoleInscriptionView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        """Récupérer les demandes d'inscription selon le rôle"""
         if request.user.role == 'ADMIN_METIER':
             ecoles = Ecole.objects.filter(statut_inscription='EN_ATTENTE_ADMIN',
                                           est_demande_inscription=True
@@ -449,11 +440,9 @@ class EcoleInscriptionView(APIView):
         return Response(data)
     
     def post(self, request):
-        """Admin Métier crée une demande d'inscription d'école"""
         if request.user.role != 'ADMIN_METIER':
             return Response({'error': 'Seul l\'Admin Métier peut créer une demande d\'inscription'}, status=403)
         
-        # Créer l'école avec statut EN_ATTENTE_ADMIN
         ecole = Ecole.objects.create(
             nom=request.data.get('nom'),
             ville=request.data.get('ville'),
@@ -467,7 +456,6 @@ class EcoleInscriptionView(APIView):
             est_demande_inscription=True,
         )
         
-        # Traiter les documents
         if 'document_autorisation' in request.FILES:
             ecole.document_autorisation = request.FILES['document_autorisation']
         if 'document_identite' in request.FILES:
@@ -484,17 +472,14 @@ class EcoleInscriptionView(APIView):
         }, status=201)
     
     def patch(self, request, ecole_id):
-        """Valider ou refuser une demande d'inscription"""
         print(f"=== PATCH EcoleInscriptionView ===")
         print(f"ecole_id reçu: {ecole_id}")
         print(f"Type de ecole_id: {type(ecole_id)}")
         
         try:
-            # Essayer de trouver l'école avec est_demande_inscription=True
             ecole = Ecole.objects.get(id=ecole_id, est_demande_inscription=True)
             print(f"École trouvée avec UUID: {ecole.id} - {ecole.nom}")
         except Ecole.DoesNotExist:
-            # Si pas trouvée, essayer de convertir en entier (pour les anciennes demandes)
             try:
                 ecole_id_int = int(ecole_id)
                 ecole = Ecole.objects.get(id=ecole_id_int, est_demande_inscription=True)
@@ -506,7 +491,6 @@ class EcoleInscriptionView(APIView):
         action = request.data.get('action')
         print(f"Action: {action}")
         
-        # Admin Métier valide
         if request.user.role == 'ADMIN_METIER' and ecole.statut_inscription == 'EN_ATTENTE_ADMIN':
             if action == 'valider':
                 ecole.statut_inscription = 'VALIDE_ADMIN'
@@ -518,7 +502,6 @@ class EcoleInscriptionView(APIView):
             else:
                 return Response({'error': 'Action non reconnue'}, status=400)
         
-        # Ministère valide
         elif request.user.role == 'MINISTERE' and ecole.statut_inscription == 'VALIDE_ADMIN':
             if action == 'valider':
                 ecole.statut_inscription = 'VALIDE_MINISTERE'
@@ -530,13 +513,11 @@ class EcoleInscriptionView(APIView):
             else:
                 return Response({'error': 'Action non reconnue'}, status=400)
         
-        # Admin Système crée l'école
         elif request.user.role == 'ADMIN_SYS' and ecole.statut_inscription == 'VALIDE_MINISTERE':
             if action == 'creer':
                 ecole.statut_inscription = 'ACTIVE'
                 ecole.date_creation = timezone.now()
                 
-                # Créer un compte utilisateur pour l'école
                 from django.contrib.auth import get_user_model
                 User = get_user_model()
                 email = request.data.get('email', f"ecole_{str(ecole.id)[:8]}@example.com")
@@ -566,4 +547,18 @@ class EcoleInscriptionView(APIView):
             'message': message,
             'statut': ecole.get_statut_inscription_display(),
             'ecole_id': str(ecole.id)
+        })
+
+class MinistereStatsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        total_ecoles = Ecole.objects.count()
+        total_etudiants = Etudiant.objects.count()
+        
+        return Response({
+            'total_etablissements': total_ecoles,
+            'total_eleves': total_etudiants,
+            'rapports_generes': 45, 
+            'taux_conformite': 94
         })

@@ -22,7 +22,6 @@
             <div>
               <p class="text-muted mb-1">{{ stat.label }}</p>
               <h2 class="display-5 fw-bold mb-0">{{ stat.value }}</h2>
-              <small class="text-success">{{ stat.change }}</small>
             </div>
             <div class="bg-{{ stat.color }} bg-opacity-10 rounded p-3">
               <i class="bi bi-{{ stat.icon }} fs-2 text-{{ stat.color }}"></i>
@@ -41,8 +40,8 @@
           <small class="text-muted">Supervision détaillée par région</small>
         </div>
         <div>
-          <span class="badge bg-primary me-2">173 Établissements</span>
-          <span class="badge bg-success">42,847 Élèves</span>
+          <span class="badge bg-primary me-2">{{ totalEtablissements }} Établissements</span>
+          <span class="badge bg-success">{{ totalEleves | number }} Élèves</span>
         </div>
       </div>
     </div>
