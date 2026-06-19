@@ -36,6 +36,7 @@ export class DashboardComponent implements OnInit {
 
   chargement = true;
   chargementDemandes = true;
+  chargementEcoles = true;
 
   statsDemandes = {
     en_attente: 0,
@@ -48,7 +49,15 @@ export class DashboardComponent implements OnInit {
   parVille: any[] = [];
   dernieresEcoles: any[] = [];
   demandesEcoles: any[] = [];
-  chargementEcoles = true;
+
+  // --- VARIABLES MODALES ---
+  dossierSelectionne: Demande | null = null;
+  showDossierModal = false;
+  documentsDossier: any[] = [];
+  chargementDocuments = false;
+
+  ecoleSelectionnee: any = null;
+  showEcoleModal = false;
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -102,7 +111,6 @@ export class DashboardComponent implements OnInit {
 
   chargerDemandes() {
     this.chargementDemandes = true;
-    
     this.http.get<any[]>(
       'http://localhost:8000/api/demandes/',
       this.authService['getHeaders']()
@@ -143,6 +151,8 @@ export class DashboardComponent implements OnInit {
     return Math.max(...this.parVille.map((v: any) => v.count), 1);
   }
 
+  // --- ACTIONS VALIDATION / REFUS ---
+
   validerDemande(demande: Demande) {
     if (confirm(`Valider le dossier ${demande.reference} de ${demande.etablissement} ?\nIl sera transmis au Ministère pour validation finale.`)) {
       this.http.patch(
@@ -154,12 +164,10 @@ export class DashboardComponent implements OnInit {
           demande.statut = 'Validé par Admin Métier';
           this.chargerStatistiques();
           alert(`✅ ${response.message}`);
+          this.fermerDossierModal();
           this.cdr.detectChanges();
         },
-        error: (err) => {
-          console.error('Erreur validation', err);
-          alert('Erreur lors de la validation du dossier');
-        }
+        error: (err) => alert('Erreur lors de la validation du dossier')
       });
     }
   }
@@ -176,22 +184,18 @@ export class DashboardComponent implements OnInit {
           demande.statut = 'Refusé';
           this.chargerStatistiques();
           alert(`❌ ${response.message}`);
+          this.fermerDossierModal();
           this.cdr.detectChanges();
         },
-        error: (err) => {
-          console.error('Erreur refus', err);
-          alert('Erreur lors du refus du dossier');
-        }
+        error: (err) => alert('Erreur lors du refus du dossier')
       });
     }
   }
 
   validerEcole(demande: any) {
     if (confirm(`Valider la demande d'inscription de ${demande.nom} ?`)) {
-      const ecoleId = demande.id;
-      
       this.http.patch(
-        `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
+        `http://localhost:8000/api/ecoles-inscription/${demande.id}/`,
         { action: 'valider' },
         this.authService['getHeaders']()
       ).subscribe({
@@ -199,22 +203,17 @@ export class DashboardComponent implements OnInit {
           alert(`✅ ${response.message}`);
           this.chargerDemandesEcoles();
           this.chargerStatsEcoles();
+          this.fermerEcoleModal();
         },
-        error: (err) => {
-          console.error('Erreur détaillée validation:', err);
-          const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
-          alert(`❌ Erreur: ${errorMsg}`);
-        }
+        error: (err) => alert(`❌ Erreur lors de la validation`)
       });
     }
   }
 
   refuserEcole(demande: any) {
     if (confirm(`Refuser la demande d'inscription de ${demande.nom} ?`)) {
-      const ecoleId = demande.id;
-      
       this.http.patch(
-        `http://localhost:8000/api/ecoles-inscription/${ecoleId}/`,
+        `http://localhost:8000/api/ecoles-inscription/${demande.id}/`,
         { action: 'refuser' },
         this.authService['getHeaders']()
       ).subscribe({
@@ -222,27 +221,77 @@ export class DashboardComponent implements OnInit {
           alert(`❌ ${response.message}`);
           this.chargerDemandesEcoles();
           this.chargerStatsEcoles();
+          this.fermerEcoleModal();
         },
-        error: (err) => {
-          console.error('Erreur détaillée refus:', err);
-          const errorMsg = err.error?.error || err.message || 'Veuillez réessayer';
-          alert(`❌ Erreur: ${errorMsg}`);
-        }
+        error: (err) => alert(`❌ Erreur lors du refus`)
       });
     }
   }
 
+  // --- MODALE 1 : DOSSIERS CLASSIQUES ---
+
   voirDetails(demande: Demande) {
-    alert(`📋 Dossier: ${demande.reference}\n🏫 Établissement: ${demande.etablissement}\n📍 Ville: ${demande.ville}\n📝 Type: ${demande.type}\n📅 Date: ${demande.date_depot}\n✅ Statut: ${demande.statut}`);
+    this.dossierSelectionne = demande;
+    this.showDossierModal = true;
+    this.chargerDocumentsDossier(demande.id);
   }
 
-  voirDocuments(demande: Demande) {
-    alert(`📎 Documents du dossier ${demande.reference}: ${demande.nb_fichiers} fichier(s) attaché(s)`);
+  fermerDossierModal() {
+    this.showDossierModal = false;
+    this.dossierSelectionne = null;
+    this.documentsDossier = [];
   }
 
-  logout() {
-    this.authService.logout();
-    this.router.navigate(['/login']);
+  chargerDocumentsDossier(id: string) {
+    this.chargementDocuments = true;
+    this.http.get<any>(
+      `http://localhost:8000/api/demandes/${id}/documents/`,
+      this.authService['getHeaders']()
+    ).subscribe({
+      next: (res) => {
+        this.documentsDossier = res.documents || [];
+        this.chargementDocuments = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.chargementDocuments = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // --- MODALE 2 : INSCRIPTION ÉCOLES ---
+
+  voirDetailsEcole(ecole: any) {
+    this.ecoleSelectionnee = ecole;
+    this.showEcoleModal = true;
+  }
+
+  fermerEcoleModal() {
+    this.showEcoleModal = false;
+    this.ecoleSelectionnee = null;
+  }
+
+  // --- GESTION DES DOCUMENTS ---
+
+  getDocumentUrl(chemin: string): string {
+    if (!chemin) return '';
+    if (chemin.startsWith('http')) return chemin;
+    return `http://localhost:8000${chemin}`;
+  }
+
+  telechargerFichierSecurise(cheminFichier: string) {
+    if (cheminFichier) {
+      const urlComplete = this.getDocumentUrl(cheminFichier);
+      window.open(urlComplete, '_blank');
+    }
+  }
+
+  ouvrirDocument(url: string) {
+    if (url) {
+      const fullUrl = url.startsWith('http') ? url : `http://localhost:8000${url}`;
+      window.open(fullUrl, '_blank');
+    }
   }
 
   telechargerDocument(demande: Demande) {
@@ -250,53 +299,22 @@ export class DashboardComponent implements OnInit {
       alert('Aucun document disponible pour cette demande');
       return;
     }
-    
-    this.http.get(
-      `http://localhost:8000/api/demandes/${demande.id}/documents/`,
-      this.authService['getHeaders']()
-    ).subscribe({
+    this.http.get(`http://localhost:8000/api/demandes/${demande.id}/documents/`, this.authService['getHeaders']()).subscribe({
       next: (response: any) => {
         if (response.documents && response.documents.length > 0) {
-          
           response.documents.forEach((doc: any) => {
-            const fileUrl = doc.url ? 
-                            (doc.url.startsWith('http') ? doc.url : 'http://localhost:8000' + doc.url) : 
-                            `http://localhost:8000/media/demandes/${encodeURIComponent(doc.name)}`;
-            
-            const fileName = doc.name || (doc.url ? doc.url.split('/').pop() : 'document_telecharge');
-
-            this.http.get(fileUrl, {
-              headers: this.authService['getHeaders']().headers,
-              responseType: 'blob' 
-            }).subscribe({
-              next: (blob: Blob) => {
-                const urlObject = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = urlObject;
-                link.download = fileName; 
-                
-                document.body.appendChild(link);
-                link.click();
-                
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(urlObject);
-              },
-              error: (errBlob) => {
-                console.warn(`Téléchargement Blob bloqué pour ${fileName}. Lancement du Plan B.`, errBlob);
-                
-                window.open(fileUrl, '_blank');
-              }
-            });
+            const fileUrl = doc.url ? (doc.url.startsWith('http') ? doc.url : 'http://localhost:8000' + doc.url) : `http://localhost:8000/media/demandes/${encodeURIComponent(doc.name)}`;
+            window.open(fileUrl, '_blank');
           });
-
         } else {
           alert('Aucun document disponible');
         }
-      },
-      error: (err) => {
-        console.error('Erreur récupération liste documents', err);
-        alert('Erreur lors de la récupération des documents');
       }
     });
+  }
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

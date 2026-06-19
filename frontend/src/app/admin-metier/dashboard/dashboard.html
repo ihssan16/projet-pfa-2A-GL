@@ -1,16 +1,11 @@
 <div class="container-fluid px-4 py-4">
 
-  <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h1 class="display-6 fw-bold mb-0">Dashboard Admin Métier</h1>
       <p class="text-muted">Validation et suivi des dossiers des établissements</p>
     </div>
     <div class="d-flex gap-2">
-      <!-- AJOUT DU BOUTON "Nouvelle école" 
-      <a routerLink="/admin-metier/inscription-ecole" class="btn btn-success btn-sm">
-        <i class="bi bi-plus-circle"></i> Nouvelle école
-      </a>-->
       <div class="dropdown">
         <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
           <i class="bi bi-person-circle"></i> Admin Métier
@@ -24,7 +19,6 @@
     </div>
   </div>
 
-  <!-- Cartes KPI - Statistiques des demandes -->
   <div class="row g-4 mb-4">
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100 bg-warning bg-opacity-10">
@@ -88,7 +82,6 @@
     </div>
   </div>
 
-  <!-- Tableau principal : Demandes à traiter -->
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white border-0 pt-4">
       <div class="d-flex justify-content-between align-items-center">
@@ -134,8 +127,8 @@
               <td><span class="badge bg-secondary">{{ demande.type }}</span></td>
               <td>{{ demande.date_depot | date:'dd/MM/yyyy' }}</td>
               <td class="text-center">
-                <button class="btn btn-sm btn-outline-primary" (click)="telechargerDocument(demande)" [disabled]="!demande.nb_fichiers || demande.nb_fichiers === 0" title="Télécharger les documents">
-                  <i class="bi bi-download"></i> Télécharger
+                <button class="btn btn-sm btn-outline-primary" (click)="telechargerDocument(demande)" [disabled]="!demande.nb_fichiers || demande.nb_fichiers === 0" title="Télécharger tout">
+                  <i class="bi bi-download"></i>
                 </button>
               </td>
               <td>
@@ -150,7 +143,7 @@
               </td>
               <td class="text-center">
                 <div class="btn-group btn-group-sm" role="group">
-                  <button class="btn btn-outline-primary" (click)="voirDetails(demande)" title="Voir détails">
+                  <button class="btn btn-outline-info" (click)="voirDetails(demande)" title="Examiner le dossier">
                     <i class="bi bi-eye"></i>
                   </button>
                   <button *ngIf="demande.statut === 'En attente' || demande.statut === 'En cours de traitement'" 
@@ -169,7 +162,7 @@
       </div>
     </div>
   </div>
-    <!-- Section Demandes d'inscription d'écoles -->
+
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white border-0 pt-4">
       <div class="d-flex justify-content-between align-items-center">
@@ -223,17 +216,24 @@
                 </span>
               </td>
               <td class="text-center">
-                <div class="btn-group btn-group-sm" role="group" *ngIf="demande.statut === 'En attente Admin Métier'">
-                  <button class="btn btn-outline-success" (click)="validerEcole(demande)" title="Valider">
-                    <i class="bi bi-check-lg"></i>
+                <div class="d-flex justify-content-center align-items-center gap-1">
+                  <button class="btn btn-sm btn-outline-info" (click)="voirDetailsEcole(demande)" title="Examiner le dossier d'inscription">
+                    <i class="bi bi-eye"></i>
                   </button>
-                  <button class="btn btn-outline-danger" (click)="refuserEcole(demande)" title="Refuser">
-                    <i class="bi bi-x-lg"></i>
-                  </button>
+                  
+                  <div class="btn-group btn-group-sm" role="group" *ngIf="demande.statut === 'En attente Admin Métier'">
+                    <button class="btn btn-outline-success" (click)="validerEcole(demande)" title="Valider">
+                      <i class="bi bi-check-lg"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" (click)="refuserEcole(demande)" title="Refuser">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+                  
+                  <span *ngIf="demande.statut !== 'En attente Admin Métier'" class="text-muted small ms-1 fw-medium">
+                    Traité
+                  </span>
                 </div>
-                <span *ngIf="demande.statut !== 'En attente Admin Métier'" class="text-muted">
-                  {{ demande.statut }}
-                </span>
               </td>
             </tr>
           </tbody>
@@ -242,19 +242,13 @@
     </div>
   </div>
 
-  <!-- Sections secondaires (Top villes et dernières écoles) -->
   <div class="row g-4">
     <div class="col-md-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-white border-0 pt-4">
           <h5 class="fw-bold mb-0">Top villes</h5>
-          <small class="text-muted">Établissements par ville</small>
         </div>
         <div class="card-body">
-          <div *ngIf="chargement" class="text-center py-3">
-            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
-            Chargement...
-          </div>
           <div *ngFor="let v of parVille" class="mb-3">
             <div class="d-flex justify-content-between mb-1">
               <span class="fw-semibold">{{ v.ville || 'Non défini' }}</span>
@@ -267,34 +261,17 @@
         </div>
       </div>
     </div>
-
     <div class="col-md-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-white border-0 pt-4">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h5 class="fw-bold mb-0">Derniers établissements</h5>
-              <small class="text-muted">5 derniers enregistrés</small>
-            </div>
-          </div>
+          <h5 class="fw-bold mb-0">Derniers établissements</h5>
         </div>
         <div class="card-body p-0">
           <table class="table table-hover mb-0">
             <thead class="table-light">
-              <tr>
-                <th class="ps-3">Nom</th>
-                <th>Ville</th>
-                <th>Niveau</th>
-                <th>Capacité</th>
-              </tr>
+              <tr><th class="ps-3">Nom</th><th>Ville</th><th>Niveau</th><th>Capacité</th></tr>
             </thead>
             <tbody>
-              <tr *ngIf="chargement">
-                <td colspan="4" class="text-center py-4 text-muted">
-                  <div class="spinner-border spinner-border-sm text-primary me-2"></div>
-                  Chargement...
-                </td>
-              </tr>
               <tr *ngFor="let ecole of dernieresEcoles">
                 <td class="ps-3 fw-semibold">{{ ecole.nom }}</td>
                 <td>{{ ecole.ville || '—' }}</td>
@@ -304,6 +281,135 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" tabindex="-1" [class.show]="showDossierModal" [style.display]="showDossierModal ? 'block' : 'none'" style="background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;" *ngIf="dossierSelectionne">
+      <div class="modal-header bg-light border-bottom-0 pt-4 pb-3 px-4">
+        <h5 class="modal-title fw-bold text-dark">
+          <i class="bi bi-folder2-open me-2 text-primary"></i>
+          Dossier : {{ dossierSelectionne.reference }}
+        </h5>
+        <button type="button" class="btn-close" (click)="fermerDossierModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Informations Générales</h6>
+            <p class="mb-2"><strong class="text-dark">Établissement :</strong> {{ dossierSelectionne.etablissement }}</p>
+            <p class="mb-2"><strong class="text-dark">Ville :</strong> {{ dossierSelectionne.ville }}</p>
+            <p class="mb-2"><strong class="text-dark">Type :</strong> <span class="badge bg-secondary">{{ dossierSelectionne.type }}</span></p>
+            <p class="mb-2"><strong class="text-dark">Date de dépôt :</strong> {{ dossierSelectionne.date_depot | date:'dd/MM/yyyy' }}</p>
+            <p class="mb-2">
+              <strong class="text-dark">Statut :</strong> 
+              <span class="badge ms-2" [ngClass]="{
+                'bg-warning text-dark': dossierSelectionne.statut === 'En attente',
+                'bg-info text-dark': dossierSelectionne.statut === 'En cours de traitement',
+                'bg-success': dossierSelectionne.statut === 'Validé par Admin Métier',
+                'bg-danger': dossierSelectionne.statut === 'Refusé'
+              }">{{ dossierSelectionne.statut }}</span>
+            </p>
+          </div>
+          
+          <div class="col-12 mt-4">
+            <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">
+              Documents joints ({{ dossierSelectionne.nb_fichiers }})
+            </h6>
+            
+            <div *ngIf="chargementDocuments" class="text-center py-3">
+              <div class="spinner-border spinner-border-sm text-primary me-2"></div> Chargement...
+            </div>
+            
+            <div *ngIf="!chargementDocuments && documentsDossier.length === 0" class="alert alert-light text-center border">
+              Aucun document rattaché à ce dossier.
+            </div>
+            
+            <div *ngIf="!chargementDocuments && documentsDossier.length > 0" class="d-flex gap-3 flex-wrap">
+              <button *ngFor="let doc of documentsDossier" (click)="ouvrirDocument(doc.url)" class="btn btn-light border btn-sm rounded-pill px-3 shadow-sm">
+                <i class="bi bi-file-earmark-text text-primary"></i> {{ doc.name }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-top-0 px-4 py-3" style="border-radius: 0 0 16px 16px;">
+        <ng-container *ngIf="dossierSelectionne.statut === 'En attente' || dossierSelectionne.statut === 'En cours de traitement'">
+          <button type="button" class="btn btn-outline-danger px-4 rounded-pill" (click)="refuserDemande(dossierSelectionne)">
+            <i class="bi bi-x-circle me-1"></i> Refuser
+          </button>
+          <button type="button" class="btn btn-success px-4 rounded-pill" (click)="validerDemande(dossierSelectionne)">
+            <i class="bi bi-check-circle me-1"></i> Valider
+          </button>
+        </ng-container>
+        <button type="button" class="btn btn-secondary px-4 rounded-pill" (click)="fermerDossierModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" tabindex="-1" [class.show]="showEcoleModal" [style.display]="showEcoleModal ? 'block' : 'none'" style="background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;" *ngIf="ecoleSelectionnee">
+      <div class="modal-header bg-light border-bottom-0 pt-4 pb-3 px-4">
+        <h5 class="modal-title fw-bold text-dark">
+          <i class="bi bi-building me-2 text-primary"></i>
+          Fiche d'établissement : {{ ecoleSelectionnee.nom }}
+        </h5>
+        <button type="button" class="btn-close" (click)="fermerEcoleModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Informations Générales</h6>
+            <p class="mb-2"><strong class="text-dark">Ville :</strong> {{ ecoleSelectionnee.ville }}</p>
+            <p class="mb-2"><strong class="text-dark">Niveaux :</strong> {{ ecoleSelectionnee.niveaux }}</p>
+            <p class="mb-2"><strong class="text-dark">Capacité :</strong> {{ ecoleSelectionnee.capacite_eleves }} élèves</p>
+            <p class="mb-2"><strong class="text-dark">Date :</strong> {{ ecoleSelectionnee.date_demande | date:'dd/MM/yyyy' }}</p>
+          </div>
+          <div class="col-md-6">
+            <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Contact & Coordonnées</h6>
+            <p class="mb-2"><strong class="text-dark">Email :</strong> <a href="mailto:{{ ecoleSelectionnee.email_contact }}" class="text-decoration-none">{{ ecoleSelectionnee.email_contact }}</a></p>
+            <p class="mb-2"><strong class="text-dark">Téléphone :</strong> {{ ecoleSelectionnee.telephone || 'Non renseigné' }}</p>
+            <p class="mb-2"><strong class="text-dark">Site Web :</strong> 
+              <a *ngIf="ecoleSelectionnee.site_web" [href]="ecoleSelectionnee.site_web" target="_blank" class="text-decoration-none">{{ ecoleSelectionnee.site_web }}</a>
+              <span *ngIf="!ecoleSelectionnee.site_web" class="text-muted">Non renseigné</span>
+            </p>
+          </div>
+          <div class="col-12 mt-4">
+            <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Documents Réglementaires</h6>
+            <div class="d-flex gap-3 flex-wrap">
+              <button type="button" *ngIf="ecoleSelectionnee.document_autorisation" (click)="telechargerFichierSecurise(ecoleSelectionnee.document_autorisation)" class="btn btn-light border btn-sm rounded-pill px-3 shadow-sm">
+                <i class="bi bi-file-earmark-pdf text-danger"></i> Autorisation
+              </button>
+              <span *ngIf="!ecoleSelectionnee.document_autorisation" class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-2 fw-normal">Autorisation manquante</span>
+
+              <button type="button" *ngIf="ecoleSelectionnee.document_identite" (click)="telechargerFichierSecurise(ecoleSelectionnee.document_identite)" class="btn btn-light border btn-sm rounded-pill px-3 shadow-sm">
+                <i class="bi bi-person-badge text-primary"></i> Pièce d'identité
+              </button>
+              <span *ngIf="!ecoleSelectionnee.document_identite" class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-2 fw-normal">Identité manquante</span>
+
+              <button type="button" *ngIf="ecoleSelectionnee.document_justificatif" (click)="telechargerFichierSecurise(ecoleSelectionnee.document_justificatif)" class="btn btn-light border btn-sm rounded-pill px-3 shadow-sm">
+                <i class="bi bi-house-door text-success"></i> Justificatif
+              </button>
+              <span *ngIf="!ecoleSelectionnee.document_justificatif" class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-2 fw-normal">Justificatif manquant</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-top-0 px-4 py-3" style="border-radius: 0 0 16px 16px;">
+        <ng-container *ngIf="ecoleSelectionnee.statut === 'En attente Admin Métier'">
+          <button type="button" class="btn btn-outline-danger px-4 rounded-pill" (click)="refuserEcole(ecoleSelectionnee)">
+            <i class="bi bi-x-circle me-1"></i> Refuser
+          </button>
+          <button type="button" class="btn btn-success px-4 rounded-pill" (click)="validerEcole(ecoleSelectionnee)">
+            <i class="bi bi-check-circle me-1"></i> Pré-valider
+          </button>
+        </ng-container>
+        <button type="button" class="btn btn-secondary px-4 rounded-pill" (click)="fermerEcoleModal()">Fermer</button>
       </div>
     </div>
   </div>
