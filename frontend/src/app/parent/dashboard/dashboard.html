@@ -115,31 +115,7 @@
       </div>
 
       <div class="row g-4">
-        <div class="col-md-6">
-          <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 pt-4">
-              <h5 class="fw-bold mb-0">Bulletins</h5>
-              <small class="text-muted">Documents officiels</small>
-            </div>
-            <div class="card-body">
-              <div *ngFor="let bulletin of bulletins" class="mb-2">
-                <button class="btn btn-outline-secondary w-100 text-start" 
-                        (click)="voirBulletin(bulletin.trimestre)">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <span>{{ bulletin.trimestre }}</span>
-                    <div *ngIf="bulletin.status === 'completed'">
-                      <i class="bi bi-star-fill text-warning" *ngFor="let i of [1,2,3,4]"></i>
-                    </div>
-                    <i class="bi bi-download" *ngIf="bulletin.status === 'completed'"></i>
-                    <span class="badge bg-secondary" *ngIf="bulletin.status === 'current'">En cours</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6">
+        <div class="col-12">
           <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 pt-4">
               <h5 class="fw-bold mb-0">Absences récentes</h5>

@@ -25,19 +25,8 @@ export class DashboardComponent {
   ];
 
   notes: any[] = [];
-
-  // --- MODIFICATION ICI : Tableau vidé pour être rempli dynamiquement ---
   emploiTemps: any[] = [];
-
-  bulletins = [
-    { trimestre: 'Trimestre 1 - 2024', etoiles: 4, status: 'completed' },
-    { trimestre: 'Trimestre 2 - 2025', etoiles: 4, status: 'completed' },
-    { trimestre: 'Trimestre 3 en cours', etoiles: 0, status: 'current' }
-  ];
-
-  // Ce tableau est désormais alimenté dynamiquement
   absences: any[] = [];
-
   progression = '+1.8 points';
 
   constructor(
@@ -68,7 +57,6 @@ export class DashboardComponent {
           const ecriture20 = (data.profil_etudiant.note_ecriture || 0) / 5;
           const physique20 = (data.profil_etudiant.note_physique || 0) / 5;
           const anglais20 = (data.profil_etudiant.note_anglais || 0) / 5;
-          // Ajouts pour être cohérent avec toutes les matières
           const histoire20 = (data.profil_etudiant.note_histoire || 0) / 5;
           const info20 = (data.profil_etudiant.note_informatique || 0) / 5;
 
@@ -96,7 +84,6 @@ export class DashboardComponent {
               this.cdr.detectChanges();
             },
             error: () => {
-              // Sécurité supplémentaire si la requête des profs échoue
               this.genererEmploiDuTempsAujourdhui(this.etudiant.ecole, this.etudiant.classe, []);
               this.cdr.detectChanges();
             }
@@ -121,7 +108,6 @@ export class DashboardComponent {
       });
     }
 
-    // --- MODIFICATION ICI : Sécurité/Fallback avec toutes les matières ---
     if (Object.keys(profsParMatiere).length === 0) {
       profsParMatiere = { 
         'Mathématiques': ['M. Benali'], 
@@ -199,10 +185,6 @@ export class DashboardComponent {
 
   voirToutesNotes() {
     this.router.navigate(['/parent/notes']);
-  }
-
-  voirBulletin(trimestre: string) {
-    alert(`Téléchargement du ${trimestre}`);
   }
 
   logout() {
