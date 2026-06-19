@@ -236,78 +236,44 @@
         <div class="card-body p-0">
 
           <div class="list-group list-group-flush">
+            
+  <div *ngIf="!activites || activites.length === 0" class="text-center py-5 text-muted">
+    <i class="bi bi-clock-history fs-1 text-light mb-2 d-block"></i>
+    <small>Aucune activité enregistrée</small>
+  </div>
 
-           
+  <div class="list-group-item border-0 py-3 px-4 list-group-item-action" style="cursor: default;" *ngFor="let log of activites">
+    <div class="d-flex align-items-center">
+      
+      <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+           [ngClass]="log.color ? 'bg-' + log.color + '-subtle' : 'bg-primary-subtle'"
+           style="width: 45px; height: 45px; min-width: 45px;">
+        <i class="bi fs-5"
+           [ngClass]="[log.icon ? 'bi-' + log.icon : 'bi-activity', log.color ? 'text-' + log.color : 'text-primary']">
+        </i>
+      </div>
+      
+      <div class="flex-grow-1 text-truncate">
+        <h6 class="mb-1 fw-semibold text-dark text-truncate" [title]="log.action">
+          {{ log.action }}
+        </h6>
+        <p class="mb-0 text-muted small text-truncate">
+          <i class="bi bi-arrow-return-right me-1 opacity-50"></i>
+          {{ log.detail || 'Système' }}
+        </p>
+      </div>
+      
+      <div class="text-end ms-3">
+        <small class="text-muted fw-medium" style="font-size: 0.75rem;">
+          <i class="bi bi-clock me-1"></i>
+          {{ log.heure || '00:00' }}
+        </small>
+      </div>
+      
+    </div>
+  </div>
 
-            <div *ngIf="!activites || activites.length === 0" class="text-center py-5 text-muted">
-
-              <i class="bi bi-clock-history fs-1 text-light mb-2 d-block"></i>
-
-              <small>Aucune activité enregistrée</small>
-
-            </div>
-
-
-            <div class="list-group-item border-0 py-3 px-4 list-group-item-action" style="cursor: default;" *ngFor="let log of activites">
-
-              <div class="d-flex align-items-center">
-
-               
-
-                <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-
-                     [ngClass]="log.type ? 'bg-' + log.type + '-subtle' : 'bg-primary-subtle'"
-
-                     style="width: 45px; height: 45px; min-width: 45px;">
-
-                  <i class="bi fs-5"
-
-                     [ngClass]="[log.icone ? 'bi-' + log.icone : 'bi-activity', log.type ? 'text-' + log.type : 'text-primary']">
-
-                  </i>
-
-                </div>
-
-               
-
-                <div class="flex-grow-1 text-truncate">
-
-                  <h6 class="mb-1 fw-semibold text-dark text-truncate" [title]="log.action">
-
-                    {{ log.action }}
-
-                  </h6>
-
-                  <p class="mb-0 text-muted small text-truncate">
-
-                    <i class="bi bi-arrow-return-right me-1 opacity-50"></i>
-
-                    {{ log.cible || 'Système' }}
-
-                  </p>
-
-                </div>
-
-               
-
-                <div class="text-end ms-3">
-
-                  <span class="badge bg-light text-secondary border rounded-pill py-1 px-2">
-
-                    <i class="bi bi-clock me-1"></i>{{ log.date ? (log.date | date:'HH:mm') : '00:00' }}
-
-                  </span>
-
-                </div>
-
-               
-
-              </div>
-
-            </div>
-
-
-          </div>
+</div>
 
         </div>
 
