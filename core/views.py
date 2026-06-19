@@ -661,8 +661,10 @@ class MesEnseignantsView(APIView):
     
     def get(self, request):
         if hasattr(request.user, 'profil_etudiant') and request.user.profil_etudiant.ecole:
-            ecole = request.user.profil_etudiant.ecole
-            enseignants = Enseignant.objects.filter(ecole=ecole)
+            profil = request.user.profil_etudiant
+            ecole = profil.ecole
+            niveau_etudiant = profil.niveau 
+            enseignants = Enseignant.objects.filter(ecole=ecole, niveau=niveau_etudiant)
             
             data = []
             for prof in enseignants:

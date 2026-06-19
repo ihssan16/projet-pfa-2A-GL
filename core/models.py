@@ -152,6 +152,7 @@ class Enseignant(models.Model):
     prenom = models.CharField(max_length=100)
     matiere = models.CharField(max_length=100)
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name='enseignants')
+    niveau = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.prenom} {self.nom} - {self.matiere}"
+        return f"{self.prenom} {self.nom} - {self.matiere} ({self.niveau})"
