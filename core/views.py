@@ -150,16 +150,13 @@ class MesElevesView(APIView):
 
     def get(self, request):
         try:
-            # 1. On identifie l'école de la personne connectée
             mon_ecole = request.user.profil_ecole
             
-            # 2. On récupère les profils Etudiant avec leurs infos Utilisateur liées
             profils_etudiants = Etudiant.objects.filter(ecole=mon_ecole).select_related('utilisateur').order_by('-utilisateur__date_joined')
             
             data = []
             for profil in profils_etudiants:
                 if profil.utilisateur:
-                    # On tente de récupérer le niveau (selon le nom de votre champ dans models.py)
                     niveau_eleve = getattr(profil, 'niveau', None) or getattr(profil, 'etudiant_niveau', None)
                     
                     data.append({
@@ -169,7 +166,6 @@ class MesElevesView(APIView):
                         'email': profil.utilisateur.email,
                         'last_login': profil.utilisateur.last_login.isoformat() if profil.utilisateur.last_login else None,
                         'profil_etudiant': {
-                            # On injecte le niveau explicitement pour Angular
                             'niveau': niveau_eleve
                         }
                     })
@@ -630,3 +626,30 @@ class MinistereStatsAPIView(APIView):
             'taux_conformite': 94,
             'regions': regions_data
         })
+    
+
+class EtablissementsMinistereView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        region_nom = request.query_params.get('region', '')
+        if not region_nom:
+            return Response([])
+
+        if region_nom == "Non spécifiée":
+            ecoles = Ecole.objects.filter(ville__isnull=True) | Ecole.objects.filter(ville='')
+        else:
+            ecoles = Ecole.objects.filter(ville__iexact=region_nom)
+
+        data = []
+        for ecole in ecoles:
+            nb_eleves = Etudiant.objects.filter(ecole=ecole).count()
+            data.append({
+                'id': str(ecole.id),
+                'nom': ecole.nom,
+                'ville': ecole.ville,
+                'niveaux': ecole.niveaux,
+                'nombre_eleves': nb_eleves,
+                'statut': ecole.get_statut_inscription_display() if hasattr(ecole, 'get_statut_inscription_display') else "Actif"
+            })
+        return Response(data)

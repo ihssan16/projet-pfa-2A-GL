@@ -28,6 +28,15 @@ export class DashboardComponent {
   ecoleSelectionnee: any = null;
   showEcoleModal = false;
 
+  // =========================================
+  // --- AJOUTS POUR LA VISUALISATION PAR RÉGION ---
+  // =========================================
+  // Variables pour gérer la nouvelle modale des écoles par région
+  ecolesParRegion: any[] = [];
+  chargementEcolesRegion: boolean = false;
+  showRegionSchoolsModal: boolean = false;
+  nomRegionSelectionnee: string = '';
+
   constructor(
     private router: Router,
     private http: HttpClient,
@@ -159,7 +168,6 @@ export class DashboardComponent {
     }
   }
 
-  // Fonction hyper simplifiée et infaillible pour les dossiers
   telechargerDocument(demande: any) {
     if (!demande.nb_fichiers || demande.nb_fichiers === 0) {
       alert('Aucun document disponible pour cette demande');
@@ -169,7 +177,6 @@ export class DashboardComponent {
     this.http.get<any>(`http://localhost:8000/api/demandes/${demande.id}/documents/`, this.getHeaders()).subscribe({
       next: (res: any) => {
         if (res.documents && res.documents.length > 0) {
-          // Ouvre chaque fichier directement dans un nouvel onglet
           res.documents.forEach((doc: any) => {
             window.open(`http://localhost:8000${doc.url}`, '_blank');
           });
@@ -181,7 +188,6 @@ export class DashboardComponent {
     });
   }
 
-  // Fonction hyper simplifiée et infaillible pour la modale
   telechargerFichierSecurise(cheminFichier: string) {
     if (cheminFichier) {
       const urlComplete = this.getDocumentUrl(cheminFichier);
@@ -205,9 +211,40 @@ export class DashboardComponent {
   }
 
   voirDetailsRegion(region: string) { 
-    this.router.navigate(['/ministere/region', region]); 
+    this.nomRegionSelectionnee = region;
+    this.showRegionSchoolsModal = true;
+    this.ecolesParRegion = []; 
+    this.chargerEcolesParRegion(region);
   }
-  
+
+  fermerRegionSchoolsModal() {
+    this.showRegionSchoolsModal = false;
+    this.nomRegionSelectionnee = '';
+    this.ecolesParRegion = [];
+  }
+
+chargerEcolesParRegion(regionName: string) {
+    this.chargementEcolesRegion = true;
+    
+    const url = `http://localhost:8000/api/etablissements-ministere/?region=${encodeURIComponent(regionName)}`;
+    
+    this.http.get<any[]>(url, this.getHeaders()).subscribe({
+      next: (data) => {
+        console.log("Écoles reçues pour la région :", data);
+        this.ecolesParRegion = data;
+        this.chargementEcolesRegion = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des écoles de la région', err);
+        this.chargementEcolesRegion = false; 
+        this.ecolesParRegion = [];
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+
   logout() {
     localStorage.removeItem('access');
     localStorage.removeItem('access_token');
