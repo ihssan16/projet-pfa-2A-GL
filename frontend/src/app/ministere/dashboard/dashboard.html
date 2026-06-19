@@ -9,7 +9,7 @@
         <i class="bi bi-person-circle"></i> Ministère
       </button>
       <ul class="dropdown-menu">
-        <li><a class="dropdown-item" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Déconnexion</a></li>
+        <li><a class="dropdown-item" style="cursor: pointer;" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Déconnexion</a></li>
       </ul>
     </div>
   </div>
@@ -40,7 +40,7 @@
           <small class="text-secondary">Gerez les dossiers et les créations d'écoles pré-validés par l'Admin Métier</small>
         </div>
         <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
-          {{ toutesDemandes.length }} Entrées
+          {{ toutesDemandes.length }} Entrées au total
         </span>
       </div>
     </div>
@@ -64,7 +64,7 @@
                 <p class="mb-0">Aucune demande dans l'historique.</p>
               </td>
             </tr>
-            <tr *ngFor="let item of toutesDemandes">
+            <tr *ngFor="let item of demandesPaginees">
               <td class="ps-4">
                 <div class="d-flex align-items-center gap-3">
                   <div class="icon-box" [ngClass]="item._typeLigne === 'ECOLE' ? 'icon-box-ecole' : 'icon-box-dossier'">
@@ -108,6 +108,13 @@
         </table>
       </div>
     </div>
+    <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center" *ngIf="toutesDemandes.length > 0">
+      <small class="text-muted fw-medium">Page {{ pageDemandes }} sur {{ totalPagesDemandes }}</small>
+      <div class="btn-group shadow-sm">
+        <button class="btn btn-sm btn-outline-secondary px-3" (click)="changerPageDemandes(-1)" [disabled]="pageDemandes === 1"><i class="bi bi-chevron-left"></i> Précédent</button>
+        <button class="btn btn-sm btn-outline-secondary px-3" (click)="changerPageDemandes(1)" [disabled]="pageDemandes >= totalPagesDemandes">Suivant <i class="bi bi-chevron-right"></i></button>
+      </div>
+    </div>
   </div>
 
   <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
@@ -140,7 +147,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let region of regions">
+            <tr *ngFor="let region of regionsPaginees">
               <td class="fw-bold text-dark ps-4">{{ region.nom }}</td>
               <td class="text-secondary">{{ region.etablissements }}</td>
               <td class="text-secondary fw-medium">{{ region.eleves | number }}</td>
@@ -160,6 +167,13 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+    <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center" *ngIf="regions.length > 0">
+      <small class="text-muted fw-medium">Page {{ pageRegions }} sur {{ totalPagesRegions }}</small>
+      <div class="btn-group shadow-sm">
+        <button class="btn btn-sm btn-outline-secondary px-3" (click)="changerPageRegions(-1)" [disabled]="pageRegions === 1"><i class="bi bi-chevron-left"></i> Précédent</button>
+        <button class="btn btn-sm btn-outline-secondary px-3" (click)="changerPageRegions(1)" [disabled]="pageRegions >= totalPagesRegions">Suivant <i class="bi bi-chevron-right"></i></button>
       </div>
     </div>
   </div>
@@ -251,10 +265,11 @@
                 <th class="ps-4">Nom de l'école</th>
                 <th>Ville/Quartier</th>
                 <th>Niveaux</th>
-                <th class="text-center">Élèves inscrits</th> </tr>
+                <th class="text-center">Élèves inscrits</th> 
+              </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let ecole of ecolesParRegion">
+              <tr *ngFor="let ecole of ecolesPaginees">
                 <td class="ps-4 fw-bold text-dark">{{ ecole.nom }}</td>
                 <td class="text-secondary">{{ ecole.ville || '—' }}</td>
                 <td><span class="badge bg-secondary">{{ ecole.niveaux || 'N/A' }}</span></td>
@@ -262,6 +277,14 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="p-3 bg-white border-top d-flex justify-content-between align-items-center" *ngIf="!chargementEcolesRegion && ecolesParRegion.length > 0">
+          <small class="text-muted fw-medium">Page {{ pageEcoles }} sur {{ totalPagesEcoles }}</small>
+          <div class="btn-group shadow-sm">
+            <button class="btn btn-sm btn-outline-secondary px-3 bg-white" (click)="changerPageEcoles(-1)" [disabled]="pageEcoles === 1"><i class="bi bi-chevron-left"></i></button>
+            <button class="btn btn-sm btn-outline-secondary px-3 bg-white" (click)="changerPageEcoles(1)" [disabled]="pageEcoles >= totalPagesEcoles"><i class="bi bi-chevron-right"></i></button>
+          </div>
         </div>
 
         <div *ngIf="!chargementEcolesRegion && ecolesParRegion.length === 0" class="text-center py-5 text-muted">

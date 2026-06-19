@@ -19,7 +19,6 @@ export class EmploiTempsComponent implements OnInit {
   infosEtudiant = { ecole: '', classe: '' };
 
   constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {
-    // Pré-initialisation de la grille pour éviter les bugs d'affichage
     this.jours.forEach(j => {
       this.planning[j] = {};
       this.heures.forEach(h => this.planning[j][h] = null);
@@ -36,7 +35,6 @@ export class EmploiTempsComponent implements OnInit {
     
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    // 1. Récupération du profil
     this.http.get('http://localhost:8000/api/profil/', { headers }).subscribe({
       next: (data: any) => {
         if (data.profil_etudiant) {
@@ -44,7 +42,6 @@ export class EmploiTempsComponent implements OnInit {
           this.infosEtudiant.classe = data.profil_etudiant.niveau || 'Classe';
         }
         
-        // 2. Récupération des professeurs de la base de données
         this.http.get<any[]>('http://localhost:8000/api/mes-enseignants/', { headers }).subscribe({
           next: (enseignantsBD) => {
             this.construireEmploiDuTempsHebdomadaire(this.infosEtudiant.ecole, this.infosEtudiant.classe, enseignantsBD);
@@ -52,7 +49,6 @@ export class EmploiTempsComponent implements OnInit {
             this.cdr.detectChanges();
           },
           error: () => {
-             // Sécurité si l'API des enseignants échoue
              this.construireEmploiDuTempsHebdomadaire(this.infosEtudiant.ecole, this.infosEtudiant.classe, []);
              this.chargement = false;
              this.cdr.detectChanges();
@@ -97,25 +93,19 @@ export class EmploiTempsComponent implements OnInit {
         
         const hash = ecole.length * 3 + classe.length * 7 + (jourIdx + 1) * 11 + (heureIdx + 1) * 17;
         
-        // --- LOGIQUE SCOLAIRE RÉALISTE ---
         let estLibre = false;
         
-        // 1. Le Mercredi après-midi est toujours libre
         if (j === 'Mercredi' && (heureIdx === 2 || heureIdx === 3)) {
           estLibre = true;
         }
-        // 2. Le Vendredi de 16h à 18h a de fortes chances d'être libre
         else if (j === 'Vendredi' && heureIdx === 3 && (hash % 2 === 0)) {
           estLibre = true;
         }
-        // 3. Les autres jours de 16h à 18h ont une petite chance d'être libres (fini plus tôt)
         else if (heureIdx === 3 && (hash % 4 === 0)) {
           estLibre = true;
         }
-        // Les matins (0, 1) et le début d'aprem (2) sont TOUJOURS remplis.
 
         if (!estLibre) {
-          // Pour éviter d'avoir la même matière 4h de suite, on modifie le sel du hash avec l'heure
           const matHash = hash + (heureIdx * 13); 
           const matNom = matieresDispos[matHash % matieresDispos.length];
           const profsDeCetteMatiere = profsParMatiere[matNom];

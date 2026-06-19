@@ -263,6 +263,8 @@ class DemandeView(APIView):
                     
             file_path = os.path.join(settings.MEDIA_ROOT, f'demandes/{demande.id}/{filename}')
             if os.path.exists(file_path):
+                import mimetypes
+                from django.http import FileResponse
                 content_type, _ = mimetypes.guess_type(file_path)
                 if not content_type:
                     content_type = 'application/octet-stream'
@@ -332,8 +334,7 @@ class DemandeView(APIView):
             
             if request.user.role == 'ECOLE':
                 try:
-                    ecole = request.user.profil_ecole
-                    if demande.ecole != ecole:
+                    if demande.ecole != request.user.profil_ecole:
                         return Response({'error': 'Accès non autorisé'}, status=403)
                 except:
                     return Response({'error': 'Accès non autorisé'}, status=403)
@@ -371,7 +372,7 @@ class DemandeView(APIView):
         
         compteur = 0
         for key, file in request.FILES.items():
-            if key != 'type_demande' and key != 'nombre_fichiers':
+            if key not in ['type_demande', 'nombre_fichiers']:
                 extension = os.path.splitext(file.name)[1]
                 unique_name = f"{uuid.uuid4().hex}{extension}"
                 file_path = f'demandes/{demande.id}/{unique_name}'
@@ -398,14 +399,60 @@ class DemandeView(APIView):
         
         action = request.data.get('action')
         commentaire = request.data.get('commentaire', '')
-        
-        if request.user.role == 'ADMIN_METIER' and demande.statut == 'EN_ATTENTE':
+        role = request.user.role
+
+        if role == 'ADMIN_SYS' and action == 'creer':
+            try:
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                email = request.data.get('email')
+                password = request.data.get('password')
+
+                if not email or not password:
+                    return Response({'error': 'Email et mot de passe requis'}, status=400)
+
+                if User.objects.filter(email=email).exists():
+                    return Response({'error': f"L'email {email} est déjà utilisé."}, status=400)
+
+                user = User.objects.create_user(
+                    username=email, 
+                    email=email,
+                    password=password,
+                    last_name=request.data.get('nom', ''),
+                    first_name=request.data.get('prenom', ''),
+                    role='ETUDIANT',
+                    is_active=True
+                )
+                
+                Etudiant.objects.create(
+                    utilisateur=user,
+                    ecole=demande.ecole,
+                    niveau=request.data.get('niveau', 'Non assigné'),
+                    genre=request.data.get('genre', 'M'),
+                    lunch_plan=request.data.get('lunch_plan', 'Standard')
+                )
+
+                # MODIFICATION ICI POUR L'ÉLÈVE
+                demande.statut = 'ACTIVE' 
+                demande.save()
+                
+                return Response({
+                    'message': f"Compte élève créé avec succès. Login: {email}", 
+                    'statut': demande.get_statut_display()
+                })
+                
+            except Exception as e:
+                import traceback
+                print(traceback.format_exc())
+                return Response({'error': f"Erreur serveur : {str(e)}"}, status=500)
+
+        elif role == 'ADMIN_METIER' and demande.statut in ['EN_ATTENTE', 'EN_COURS']:
             if action == 'valider':
                 demande.statut = 'VALIDE_ADMIN'
                 demande.date_traitement_admin = timezone.now()
                 demande.traite_par_admin = request.user
                 demande.commentaire_admin = commentaire
-                message = 'Dossier validé par Admin Métier, en attente de validation Ministère'
+                message = 'Dossier validé par Admin Métier'
             elif action == 'refuser':
                 demande.statut = 'REFUSE'
                 demande.date_traitement_admin = timezone.now()
@@ -415,7 +462,7 @@ class DemandeView(APIView):
             else:
                 return Response({'error': 'Action non reconnue'}, status=400)
         
-        elif request.user.role == 'MINISTERE' and demande.statut == 'VALIDE_ADMIN':
+        elif role == 'MINISTERE' and demande.statut == 'VALIDE_ADMIN':
             if action == 'valider':
                 demande.statut = 'VALIDE_MINISTERE'
                 demande.date_traitement_ministere = timezone.now()
@@ -432,26 +479,23 @@ class DemandeView(APIView):
                 return Response({'error': 'Action non reconnue'}, status=400)
         
         else:
-            return Response({'error': 'Action non autorisée pour ce statut ou ce rôle'}, status=403)
+            return Response({'error': f'Action non autorisée. Rôle: {role}, Statut: {demande.statut}'}, status=403)
         
         demande.save()
-        
         return Response({
             'message': message,
             'statut': demande.get_statut_display(),
             'demande_id': str(demande.id),
         })
 
+
 class EcoleInscriptionView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
         if request.user.role == 'ADMIN_METIER':
-            ecoles = Ecole.objects.filter(statut_inscription='EN_ATTENTE_ADMIN',
-                                          est_demande_inscription=True
-            )        
+            ecoles = Ecole.objects.filter(statut_inscription='EN_ATTENTE_ADMIN', est_demande_inscription=True)        
         elif request.user.role == 'MINISTERE':
-            # Garde l'historique complet pour le Ministère
             ecoles = Ecole.objects.filter(
                 statut_inscription__in=['VALIDE_ADMIN', 'VALIDE_MINISTERE', 'REFUSEE', 'ACTIVE'], 
                 est_demande_inscription=True
@@ -479,7 +523,6 @@ class EcoleInscriptionView(APIView):
                 'document_identite': ecole.document_identite.url if ecole.document_identite else None,
                 'document_justificatif': ecole.document_justificatif.url if ecole.document_justificatif else None,
             })
-        
         return Response(data)
     
     def post(self, request):
@@ -515,33 +558,24 @@ class EcoleInscriptionView(APIView):
         }, status=201)
     
     def patch(self, request, ecole_id):
-        print(f"=== PATCH EcoleInscriptionView ===")
-        print(f"ecole_id reçu: {ecole_id}")
-        print(f"Type de ecole_id: {type(ecole_id)}")
-        
         try:
             ecole = Ecole.objects.get(id=ecole_id, est_demande_inscription=True)
-            print(f"École trouvée avec UUID: {ecole.id} - {ecole.nom}")
         except Ecole.DoesNotExist:
             try:
-                ecole_id_int = int(ecole_id)
-                ecole = Ecole.objects.get(id=ecole_id_int, est_demande_inscription=True)
-                print(f"École trouvée avec ID numérique: {ecole.id} - {ecole.nom}")
+                ecole = Ecole.objects.get(id=int(ecole_id), est_demande_inscription=True)
             except (ValueError, Ecole.DoesNotExist):
-                print(f"Demande non trouvée: {ecole_id}")
                 return Response({'error': 'Demande d\'inscription non trouvée'}, status=404)
         
         action = request.data.get('action')
-        print(f"Action: {action}")
         
         if request.user.role == 'ADMIN_METIER' and ecole.statut_inscription == 'EN_ATTENTE_ADMIN':
             if action == 'valider':
                 ecole.statut_inscription = 'VALIDE_ADMIN'
                 ecole.date_validation_admin = timezone.now()
-                message = 'École validée par Admin Métier, en attente de validation Ministère'
+                message = 'École validée par Admin Métier'
             elif action == 'refuser':
                 ecole.statut_inscription = 'REFUSEE'
-                message = 'Demande d\'inscription refusée'
+                message = 'Demande refusée'
             else:
                 return Response({'error': 'Action non reconnue'}, status=400)
         
@@ -549,43 +583,51 @@ class EcoleInscriptionView(APIView):
             if action == 'valider':
                 ecole.statut_inscription = 'VALIDE_MINISTERE'
                 ecole.date_validation_ministere = timezone.now()
-                message = 'École validée par le Ministère, prête pour création'
+                message = 'École validée par le Ministère'
             elif action == 'refuser':
                 ecole.statut_inscription = 'REFUSEE'
-                message = 'Demande d\'inscription refusée par le Ministère'
+                message = 'Demande refusée'
             else:
                 return Response({'error': 'Action non reconnue'}, status=400)
         
         elif request.user.role == 'ADMIN_SYS' and ecole.statut_inscription == 'VALIDE_MINISTERE':
             if action == 'creer':
-                ecole.statut_inscription = 'ACTIVE'
-                ecole.date_creation = timezone.now()
-                
-                from django.contrib.auth import get_user_model
-                User = get_user_model()
-                email = request.data.get('email', f"ecole_{str(ecole.id)[:8]}@example.com")
-                password = request.data.get('password', 'ecole123456')
-                
-                user = User.objects.create(
-                    email=email,
-                    username=f"ecole_{str(ecole.id)[:8]}",
-                    first_name=request.data.get('contact_nom', ''),
-                    last_name=request.data.get('contact_prenom', ''),
-                    role='ECOLE',
-                    is_active=True
-                )
-                user.set_password(password)
-                user.save()
-                ecole.utilisateur = user
-                message = f'École créée avec succès. Login: {email} / Mot de passe: {password}'
+                try:
+                    from django.contrib.auth import get_user_model
+                    User = get_user_model()
+                    email = request.data.get('email', f"ecole_{str(ecole.id)[:8]}@example.com")
+                    password = request.data.get('password', 'ecole123456')
+                    
+                    if User.objects.filter(email=email).exists():
+                        return Response({'error': f"L'email {email} est déjà utilisé."}, status=400)
+
+                    user = User.objects.create_user(
+                        username=email,
+                        email=email,
+                        password=password,
+                        first_name=request.data.get('contact_prenom', ''),
+                        last_name=request.data.get('contact_nom', ''),
+                        role='ECOLE',
+                        is_active=True
+                    )
+                    
+                    # DÉJÀ PRÉSENT POUR L'ÉCOLE
+                    ecole.statut_inscription = 'ACTIVE'
+                    ecole.date_creation = timezone.now()
+                    ecole.utilisateur = user
+                    
+                    message = f'École créée avec succès. Login: {email}'
+                    
+                except Exception as e:
+                    import traceback
+                    print(traceback.format_exc())
+                    return Response({'error': f"Erreur critique lors de la création : {str(e)}"}, status=500)
             else:
                 return Response({'error': 'Action non reconnue'}, status=400)
         else:
             return Response({'error': 'Action non autorisée'}, status=403)
         
         ecole.save()
-        print(f"Nouveau statut: {ecole.statut_inscription}")
-        
         return Response({
             'message': message,
             'statut': ecole.get_statut_inscription_display(),
@@ -654,7 +696,6 @@ class EtablissementsMinistereView(APIView):
             })
         return Response(data)
     
-
 
 class MesEnseignantsView(APIView):
     permission_classes = [IsAuthenticated]

@@ -28,14 +28,27 @@ export class DashboardComponent {
   ecoleSelectionnee: any = null;
   showEcoleModal = false;
 
-  // =========================================
-  // --- AJOUTS POUR LA VISUALISATION PAR RÉGION ---
-  // =========================================
-  // Variables pour gérer la nouvelle modale des écoles par région
+  // Modale Régions
   ecolesParRegion: any[] = [];
   chargementEcolesRegion: boolean = false;
   showRegionSchoolsModal: boolean = false;
   nomRegionSelectionnee: string = '';
+
+  // =========================================
+  // --- VARIABLES DE PAGINATION ---
+  // =========================================
+  
+  // Demandes
+  pageDemandes: number = 1;
+  pageSizeDemandes: number = 5;
+
+  // Régions
+  pageRegions: number = 1;
+  pageSizeRegions: number = 5;
+
+  // Écoles par région (Modale)
+  pageEcoles: number = 1;
+  pageSizeEcoles: number = 5;
 
   constructor(
     private router: Router,
@@ -47,6 +60,36 @@ export class DashboardComponent {
       this.chargerToutesLesDemandes();
     });
   }
+
+  // =========================================
+  // --- GETTERS POUR LA PAGINATION ---
+  // =========================================
+
+  get demandesPaginees() {
+    const debut = (this.pageDemandes - 1) * this.pageSizeDemandes;
+    return this.toutesDemandes.slice(debut, debut + this.pageSizeDemandes);
+  }
+  get totalPagesDemandes() { return Math.ceil(this.toutesDemandes.length / this.pageSizeDemandes) || 1; }
+  changerPageDemandes(delta: number) { this.pageDemandes += delta; }
+
+  get regionsPaginees() {
+    const debut = (this.pageRegions - 1) * this.pageSizeRegions;
+    return this.regions.slice(debut, debut + this.pageSizeRegions);
+  }
+  get totalPagesRegions() { return Math.ceil(this.regions.length / this.pageSizeRegions) || 1; }
+  changerPageRegions(delta: number) { this.pageRegions += delta; }
+
+  get ecolesPaginees() {
+    const debut = (this.pageEcoles - 1) * this.pageSizeEcoles;
+    return this.ecolesParRegion.slice(debut, debut + this.pageSizeEcoles);
+  }
+  get totalPagesEcoles() { return Math.ceil(this.ecolesParRegion.length / this.pageSizeEcoles) || 1; }
+  changerPageEcoles(delta: number) { this.pageEcoles += delta; }
+
+
+  // =========================================
+  // --- FONCTIONS EXISTANTES ---
+  // =========================================
 
   private getHeaders(): { headers: HttpHeaders } {
     let headers = new HttpHeaders();
@@ -110,6 +153,9 @@ export class DashboardComponent {
     let liste = this.toutesDemandes.filter(d => d._typeLigne !== type);
     liste = [...liste, ...nouvellesDonnees];
     this.toutesDemandes = liste.sort((a, b) => new Date(b._date).getTime() - new Date(a._date).getTime());
+    
+    // Réinitialiser la page à 1 lors du chargement des données
+    this.pageDemandes = 1;
     this.cdr.detectChanges();
   }
 
@@ -214,6 +260,7 @@ export class DashboardComponent {
     this.nomRegionSelectionnee = region;
     this.showRegionSchoolsModal = true;
     this.ecolesParRegion = []; 
+    this.pageEcoles = 1; 
     this.chargerEcolesParRegion(region);
   }
 
@@ -223,27 +270,25 @@ export class DashboardComponent {
     this.ecolesParRegion = [];
   }
 
-chargerEcolesParRegion(regionName: string) {
+  chargerEcolesParRegion(regionName: string) {
     this.chargementEcolesRegion = true;
     
     const url = `http://localhost:8000/api/etablissements-ministere/?region=${encodeURIComponent(regionName)}`;
     
     this.http.get<any[]>(url, this.getHeaders()).subscribe({
       next: (data) => {
-        console.log("Écoles reçues pour la région :", data);
         this.ecolesParRegion = data;
         this.chargementEcolesRegion = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Erreur lors du chargement des écoles de la région', err);
+        console.error('Erreur', err);
         this.chargementEcolesRegion = false; 
         this.ecolesParRegion = [];
         this.cdr.detectChanges();
       }
     });
   }
-
 
   logout() {
     localStorage.removeItem('access');
