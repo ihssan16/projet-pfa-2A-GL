@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import LoginView, ProfilView, ListeUtilisateursView, DetailUtilisateurView, EcoleViewSet, EtudiantViewSet, MesElevesView, StatsAdminMetierView, EtablissementsMinistereView
 from .views import StatistiquesDemandesView, DemandeView
-from .views import EcoleInscriptionView, MinistereStatsAPIView
+from .views import EcoleInscriptionView, MinistereStatsAPIView, MesEnseignantsView
 
 router = DefaultRouter()
 router.register(r'ecoles', EcoleViewSet)
@@ -27,4 +27,5 @@ urlpatterns = [
     
     path('ministere-stats/', MinistereStatsAPIView.as_view(), name='ministere-stats'),
     path('etablissements-ministere/', EtablissementsMinistereView.as_view(), name='etablissements-ministere'),
+    path('mes-enseignants/', MesEnseignantsView.as_view(), name='mes-enseignants'),
 ]

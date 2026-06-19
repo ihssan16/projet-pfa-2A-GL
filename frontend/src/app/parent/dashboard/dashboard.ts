@@ -18,7 +18,6 @@ export class DashboardComponent {
     ecole: '...'
   };
 
-  // Le KPI des devoirs a été retiré, il reste 3 compteurs principaux
   stats = [
     { label: 'Moyenne générale', value: '...', suffix: '/20', icon: 'graph-up', color: 'primary' },
     { label: 'Rang en classe', value: '...', suffix: '...', icon: 'trophy', color: 'success' },
@@ -53,11 +52,7 @@ export class DashboardComponent {
 
   chargerProfil() {
     const token = localStorage.getItem('access') || localStorage.getItem('access_token');
-    if (!token) {
-      this.router.navigate(['/login']); 
-      return;
-    }
-
+    if (!token) { this.router.navigate(['/login']); return; }
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
     this.http.get('http://localhost:8000/api/profil/', { headers }).subscribe({
@@ -68,12 +63,12 @@ export class DashboardComponent {
           this.etudiant.ecole = data.profil_etudiant.ecole?.nom || 'École non renseignée';
           this.etudiant.classe = data.profil_etudiant.niveau || 'Classe non renseignée'; 
           
-          // Extraction des nouvelles notes
           const math20 = (data.profil_etudiant.note_math || 0) / 5;
           const lecture20 = (data.profil_etudiant.note_lecture || 0) / 5;
           const ecriture20 = (data.profil_etudiant.note_ecriture || 0) / 5;
           const physique20 = (data.profil_etudiant.note_physique || 0) / 5;
           const anglais20 = (data.profil_etudiant.note_anglais || 0) / 5;
+          // Ajouts pour être cohérent avec toutes les matières
           const histoire20 = (data.profil_etudiant.note_histoire || 0) / 5;
           const info20 = (data.profil_etudiant.note_informatique || 0) / 5;
 
@@ -87,93 +82,80 @@ export class DashboardComponent {
             { matiere: 'Écriture', coef: 2, note: ecriture20, mention: this.calculerMention(ecriture20), couleur: this.calculerCouleurTheme(ecriture20) }
           ];
 
-          const moyenne = data.profil_etudiant.moyenne || 0;
-          const rang = data.profil_etudiant.rang || 1;
-          const totalEleves = data.profil_etudiant.total_eleves || 1;
+          this.stats[0].value = (data.profil_etudiant.moyenne || 0).toString();
+          this.stats[1].value = (data.profil_etudiant.rang || 1).toString();
+          this.stats[1].suffix = '/' + (data.profil_etudiant.total_eleves || 1).toString();
 
-          this.stats[0].value = moyenne.toString();
-          this.stats[1].value = rang.toString();
-          this.stats[1].suffix = '/' + totalEleves.toString();
-
-          // GENERATION DYNAMIQUE DES ABSENCES
           const seed = this.etudiant.nom.length;
-          this.absences = [
-            { date: '12/05', matiere: 'Mathématiques', justifiee: seed % 2 === 0 },
-            { date: '28/04', matiere: 'Anglais', justifiee: true }
-          ];
-
-          if (seed % 3 === 0) {
-            this.absences.push({ date: '18/05', matiere: 'Informatique', justifiee: false });
-          }
-          if (seed % 4 === 0) {
-            this.absences.push({ date: '02/06', matiere: 'Sciences Physiques', justifiee: true });
-          }
-
-          // Mise à jour de la valeur sur le badge KPI correspondant (index 2)
+          this.absences = [{ date: '12/05', matiere: 'Mathématiques', justifiee: seed % 2 === 0 }];
           this.stats[2].value = this.absences.length.toString();
 
-          // --- MODIFICATION ICI : Appel de la génération de l'emploi du temps ---
-          this.genererEmploiDuTempsAujourdhui(this.etudiant.ecole, this.etudiant.classe);
+          this.http.get<any[]>('http://localhost:8000/api/mes-enseignants/', { headers }).subscribe({
+            next: (enseignantsBD) => {
+              this.genererEmploiDuTempsAujourdhui(this.etudiant.ecole, this.etudiant.classe, enseignantsBD);
+              this.cdr.detectChanges();
+            },
+            error: () => {
+              // Sécurité supplémentaire si la requête des profs échoue
+              this.genererEmploiDuTempsAujourdhui(this.etudiant.ecole, this.etudiant.classe, []);
+              this.cdr.detectChanges();
+            }
+          });
         }
-
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error("Erreur lors du chargement du profil :", err);
-      }
+      error: (err) => console.error("Erreur profil :", err)
     });
   }
 
-  // --- MODIFICATION ICI : Ajout de la fonction de génération ---
-  genererEmploiDuTempsAujourdhui(ecole: string, classe: string) {
-    const joursSemaine = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+  genererEmploiDuTempsAujourdhui(ecole: string, classe: string, enseignantsBD: any[]) {
     const nomJourIndice = new Date().getDay();
-    let jourActuel = joursSemaine[nomJourIndice];
+    const jourHachage = (nomJourIndice === 0 || nomJourIndice === 6) ? 1 : nomJourIndice;
 
-    // Mode démo : Si c'est le week-end, on force l'affichage du Lundi
-    if (nomJourIndice === 0 || nomJourIndice === 6) {
-      jourActuel = 'Lundi';
+    let profsParMatiere: any = {};
+    
+    if (enseignantsBD && enseignantsBD.length > 0) {
+      enseignantsBD.forEach(prof => {
+        if (!profsParMatiere[prof.matiere]) profsParMatiere[prof.matiere] = [];
+        profsParMatiere[prof.matiere].push(prof.nom_complet);
+      });
     }
 
-    // Algorithme de génération basé sur l'école et la classe
-    const matieresPool = [
-      { nom: 'Mathématiques', profs: ['M. Benali', 'Mme. Jabri', 'M. Zaidi'] },
-      { nom: 'Français', profs: ['Mme. Alami', 'M. Bourkia', 'Mme. El Amrani'] },
-      { nom: 'Sciences Physiques', profs: ['M. Idrissi', 'Mme. Seddiki'] },
-      { nom: 'Anglais', profs: ['Mme. Tazi', 'M. Walters'] },
-      { nom: 'Informatique', profs: ['M. Nouri', 'Mme. Chami'] },
-      { nom: 'SVT', profs: ['M. Chraibi', 'Mme. Bennani'] },
-      { nom: 'Histoire-Géo', profs: ['M. El Mansouri', 'Mme. Rami'] }
-    ];
+    // --- MODIFICATION ICI : Sécurité/Fallback avec toutes les matières ---
+    if (Object.keys(profsParMatiere).length === 0) {
+      profsParMatiere = { 
+        'Mathématiques': ['M. Benali'], 
+        'Informatique': ['M. Nouri'], 
+        'Sciences Physiques': ['M. Idrissi'], 
+        'Anglais': ['Mme. Tazi'], 
+        'Histoire-Géo': ['M. El Mansouri'],
+        'Lecture': ['Mme. Alami'],
+        'Écriture': ['Mme. Alami']
+      };
+    }
 
-    // Calcul du nombre d'enseignants logiquement lié à l'école
-    const nombreEnseignantsTotal = 12 + (ecole.length % 16); 
+    const listeMatieresDisponibles = Object.keys(profsParMatiere);
     const créneaux = [{ h: '08:00', idx: 1 }, { h: '10:00', idx: 2 }, { h: '14:00', idx: 3 }, { h: '16:00', idx: 4 }];
-    
     this.emploiTemps = [];
 
     créneaux.forEach(c => {
-      const jourHachage = (nomJourIndice === 0 || nomJourIndice === 6) ? 1 : nomJourIndice;
       const hash = ecole.length * 3 + classe.length * 7 + jourHachage * 11 + c.idx * 17;
       
       if (hash % 4 !== 0) {
-        const matIdx = hash % matieresPool.length;
-        const matiere = matieresPool[matIdx];
-        
-        const profPoolLimit = Math.min(matiere.profs.length, Math.ceil(nombreEnseignantsTotal / 3));
-        const profNom = matiere.profs[hash % profPoolLimit] || matiere.profs[0];
+        const nomMatiere = listeMatieresDisponibles[hash % listeMatieresDisponibles.length];
+        const listeProfsPourMatiere = profsParMatiere[nomMatiere];
+        const profAssigné = listeProfsPourMatiere[hash % listeProfsPourMatiere.length];
         
         const salleNum = 10 + (hash % 25);
         let typeSalle = 'Salle';
-        
-        if (matiere.nom.includes('Physiques') || matiere.nom.includes('SVT')) typeSalle = 'Labo';
-        if (matiere.nom.includes('Informatique')) typeSalle = 'Salle Info';
+        if (nomMatiere.toLowerCase().includes('physique') || nomMatiere.toLowerCase().includes('svt') || nomMatiere.toLowerCase().includes('science')) typeSalle = 'Labo';
+        if (nomMatiere.toLowerCase().includes('informatique')) typeSalle = 'Salle Info';
 
         this.emploiTemps.push({
           heure: c.h,
-          matiere: matiere.nom,
+          matiere: nomMatiere,
           salle: typeSalle === 'Salle' ? `Salle ${salleNum}` : `${typeSalle} ${(salleNum % 3) + 1}`,
-          professeur: profNom
+          professeur: profAssigné
         });
       }
     });

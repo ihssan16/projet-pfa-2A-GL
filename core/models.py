@@ -145,3 +145,13 @@ class DocumentDemande(models.Model):
 
     def __str__(self):
         return f"Document pour {self.demande.reference}"
+    
+
+class Enseignant(models.Model):
+    nom = models.CharField(max_length=100)
+    prenom = models.CharField(max_length=100)
+    matiere = models.CharField(max_length=100)
+    ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name='enseignants')
+
+    def __str__(self):
+        return f"{self.prenom} {self.nom} - {self.matiere}"

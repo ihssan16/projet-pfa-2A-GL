@@ -18,10 +18,10 @@
     <p class="mt-2 text-muted">Génération de l'emploi du temps...</p>
   </div>
 
-  <div class="card border-0 shadow-sm" style="border-radius: 12px;" *ngIf="!chargement">
+  <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;" *ngIf="!chargement">
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-bordered mb-0 align-middle text-center" style="min-width: 900px;">
+        <table class="table table-bordered mb-0 align-middle text-center" style="min-width: 1000px; table-layout: fixed;">
           
           <thead class="table-light">
             <tr>
@@ -33,29 +33,44 @@
           </thead>
           
           <tbody>
-            <tr *ngFor="let heure of heures">
-              <td class="fw-bold text-secondary bg-light py-4">{{ heure }}</td>
+            <ng-container *ngFor="let heure of heures; let i = index">
               
-              <td *ngFor="let jour of jours" class="p-2" style="height: 120px; vertical-align: middle;">
+              <tr>
+                <td class="fw-bold text-secondary bg-light py-4">{{ heure }}</td>
                 
-                <div *ngIf="getCours(jour, heure) as cours" 
-                     class="h-100 rounded p-2 text-start border-start border-4 shadow-sm d-flex flex-column justify-content-center"
-                     [ngClass]="'border-' + cours.color + ' bg-' + cours.color + ' bg-opacity-10'">
-                  <div class="fw-bold text-dark mb-1" style="font-size: 0.88rem;">{{ cours.matiere }}</div>
-                  <div class="small text-muted mb-1" style="font-size: 0.78rem;">
-                    <i class="bi bi-person me-1"></i>{{ cours.prof }}
+                <td *ngFor="let jour of jours" class="p-2" style="height: 120px; vertical-align: top;">
+                  
+                  <div *ngIf="getCours(jour, heure) as cours" 
+                       class="h-100 w-100 rounded p-3 text-start border-start border-4 shadow-sm d-flex flex-column justify-content-center"
+                       [ngClass]="'border-' + cours.color + ' bg-' + cours.color + ' bg-opacity-10'">
+                    <div class="fw-bold text-dark mb-2" style="font-size: 0.95rem;">{{ cours.matiere }}</div>
+                    <div class="small text-muted mb-1" style="font-size: 0.8rem;">
+                      <i class="bi bi-person-workspace me-2"></i>{{ cours.prof }}
+                    </div>
+                    <div class="small fw-semibold" style="font-size: 0.8rem;" [ngClass]="'text-' + cours.color">
+                      <i class="bi bi-geo-alt-fill me-2"></i>{{ cours.salle }}
+                    </div>
                   </div>
-                  <div class="small fw-semibold" style="font-size: 0.78rem;" [ngClass]="'text-' + cours.color">
-                    <i class="bi bi-geo-alt me-1"></i>{{ cours.salle }}
+
+                  <div *ngIf="!getCours(jour, heure)" 
+                       class="h-100 w-100 rounded d-flex align-items-center justify-content-center"
+                       style="background-color: #f8f9fa; border: 2px dashed #e9ecef;">
+                    <span class="text-muted fw-medium" style="font-size: 0.85rem; opacity: 0.6;">Libre</span>
                   </div>
-                </div>
+                </td>
+              </tr>
 
-                <div *ngIf="!getCours(jour, heure)" class="text-muted opacity-25 h-100 d-flex align-items-center justify-content-center">
-                  <small>Pas de cours</small>
-                </div>
-              </td>
+              <tr *ngIf="i === 1">
+                <td colspan="6" class="py-2" style="background-color: #f1f5f9; border-top: 2px solid #e2e8f0; border-bottom: 2px solid #e2e8f0;">
+                  <div class="d-flex align-items-center justify-content-center text-secondary fw-bold text-uppercase" style="letter-spacing: 3px; font-size: 0.8rem;">
+                    <i class="bi bi-cup-hot-fill fs-5 me-3 text-warning"></i>
+                    Pause Déjeuner (12:00 - 14:00)
+                    <i class="bi bi-cup-hot-fill fs-5 ms-3 text-warning"></i>
+                  </div>
+                </td>
+              </tr>
 
-            </tr>
+            </ng-container>
           </tbody>
         </table>
       </div>

@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Utilisateur, Ecole, Etudiant, Demande
+from .models import Utilisateur, Ecole, Etudiant, Demande, Enseignant
 from .serializers import UtilisateurSerializer, CreerUtilisateurSerializer, ProfilSerializer, EcoleSerializer, EtudiantSerializer
 from rest_framework.permissions import BasePermission
 from django.core.files.storage import default_storage
@@ -653,3 +653,24 @@ class EtablissementsMinistereView(APIView):
                 'statut': ecole.get_statut_inscription_display() if hasattr(ecole, 'get_statut_inscription_display') else "Actif"
             })
         return Response(data)
+    
+
+
+class MesEnseignantsView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        if hasattr(request.user, 'profil_etudiant') and request.user.profil_etudiant.ecole:
+            ecole = request.user.profil_etudiant.ecole
+            enseignants = Enseignant.objects.filter(ecole=ecole)
+            
+            data = []
+            for prof in enseignants:
+                data.append({
+                    'id': prof.id,
+                    'nom_complet': f"{prof.prenom[0]}. {prof.nom}",
+                    'matiere': prof.matiere
+                })
+            return Response(data)
+            
+        return Response([])
