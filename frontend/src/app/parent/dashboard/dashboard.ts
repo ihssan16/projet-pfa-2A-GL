@@ -27,11 +27,8 @@ export class DashboardComponent {
 
   notes: any[] = [];
 
-  emploiTemps = [
-    { heure: '08:00', matiere: 'Mathématiques', salle: 'A12', professeur: 'M. Benali' },
-    { heure: '09:00', matiere: 'Français', salle: 'B05', professeur: 'Mme. Alami' },
-    { heure: '11:00', matiere: 'Sciences', salle: 'Lab 2', professeur: 'M. Idrissi' }
-  ];
+  // --- MODIFICATION ICI : Tableau vidé pour être rempli dynamiquement ---
+  emploiTemps: any[] = [];
 
   bulletins = [
     { trimestre: 'Trimestre 1 - 2024', etoiles: 4, status: 'completed' },
@@ -98,6 +95,7 @@ export class DashboardComponent {
           this.stats[1].value = rang.toString();
           this.stats[1].suffix = '/' + totalEleves.toString();
 
+          // GENERATION DYNAMIQUE DES ABSENCES
           const seed = this.etudiant.nom.length;
           this.absences = [
             { date: '12/05', matiere: 'Mathématiques', justifiee: seed % 2 === 0 },
@@ -113,12 +111,70 @@ export class DashboardComponent {
 
           // Mise à jour de la valeur sur le badge KPI correspondant (index 2)
           this.stats[2].value = this.absences.length.toString();
+
+          // --- MODIFICATION ICI : Appel de la génération de l'emploi du temps ---
+          this.genererEmploiDuTempsAujourdhui(this.etudiant.ecole, this.etudiant.classe);
         }
 
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error("Erreur lors du chargement du profil :", err);
+      }
+    });
+  }
+
+  // --- MODIFICATION ICI : Ajout de la fonction de génération ---
+  genererEmploiDuTempsAujourdhui(ecole: string, classe: string) {
+    const joursSemaine = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    const nomJourIndice = new Date().getDay();
+    let jourActuel = joursSemaine[nomJourIndice];
+
+    // Mode démo : Si c'est le week-end, on force l'affichage du Lundi
+    if (nomJourIndice === 0 || nomJourIndice === 6) {
+      jourActuel = 'Lundi';
+    }
+
+    // Algorithme de génération basé sur l'école et la classe
+    const matieresPool = [
+      { nom: 'Mathématiques', profs: ['M. Benali', 'Mme. Jabri', 'M. Zaidi'] },
+      { nom: 'Français', profs: ['Mme. Alami', 'M. Bourkia', 'Mme. El Amrani'] },
+      { nom: 'Sciences Physiques', profs: ['M. Idrissi', 'Mme. Seddiki'] },
+      { nom: 'Anglais', profs: ['Mme. Tazi', 'M. Walters'] },
+      { nom: 'Informatique', profs: ['M. Nouri', 'Mme. Chami'] },
+      { nom: 'SVT', profs: ['M. Chraibi', 'Mme. Bennani'] },
+      { nom: 'Histoire-Géo', profs: ['M. El Mansouri', 'Mme. Rami'] }
+    ];
+
+    // Calcul du nombre d'enseignants logiquement lié à l'école
+    const nombreEnseignantsTotal = 12 + (ecole.length % 16); 
+    const créneaux = [{ h: '08:00', idx: 1 }, { h: '10:00', idx: 2 }, { h: '14:00', idx: 3 }, { h: '16:00', idx: 4 }];
+    
+    this.emploiTemps = [];
+
+    créneaux.forEach(c => {
+      const jourHachage = (nomJourIndice === 0 || nomJourIndice === 6) ? 1 : nomJourIndice;
+      const hash = ecole.length * 3 + classe.length * 7 + jourHachage * 11 + c.idx * 17;
+      
+      if (hash % 4 !== 0) {
+        const matIdx = hash % matieresPool.length;
+        const matiere = matieresPool[matIdx];
+        
+        const profPoolLimit = Math.min(matiere.profs.length, Math.ceil(nombreEnseignantsTotal / 3));
+        const profNom = matiere.profs[hash % profPoolLimit] || matiere.profs[0];
+        
+        const salleNum = 10 + (hash % 25);
+        let typeSalle = 'Salle';
+        
+        if (matiere.nom.includes('Physiques') || matiere.nom.includes('SVT')) typeSalle = 'Labo';
+        if (matiere.nom.includes('Informatique')) typeSalle = 'Salle Info';
+
+        this.emploiTemps.push({
+          heure: c.h,
+          matiere: matiere.nom,
+          salle: typeSalle === 'Salle' ? `Salle ${salleNum}` : `${typeSalle} ${(salleNum % 3) + 1}`,
+          professeur: profNom
+        });
       }
     });
   }

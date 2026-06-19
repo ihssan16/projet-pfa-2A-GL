@@ -1,1 +1,64 @@
-<p>emploi-temps works!</p>
+<div class="container-fluid px-4 py-4">
+  
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <a routerLink="/parent" class="text-decoration-none text-muted mb-2 d-inline-block" style="cursor: pointer;">
+        <i class="bi bi-arrow-left me-1"></i> Retour au tableau de bord
+      </a>
+      <h1 class="display-6 fw-bold mb-0 text-dark">Emploi du temps</h1>
+      <p class="text-muted" *ngIf="!chargement">{{ infosEtudiant.classe }} • {{ infosEtudiant.ecole }}</p>
+    </div>
+    <button class="btn btn-primary rounded-pill px-4 shadow-sm">
+      <i class="bi bi-printer me-2"></i> Imprimer
+    </button>
+  </div>
+
+  <div *ngIf="chargement" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2 text-muted">Génération de l'emploi du temps...</p>
+  </div>
+
+  <div class="card border-0 shadow-sm" style="border-radius: 12px;" *ngIf="!chargement">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-bordered mb-0 align-middle text-center" style="min-width: 900px;">
+          
+          <thead class="table-light">
+            <tr>
+              <th class="py-3 text-secondary border-bottom-0 bg-light" style="width: 12%;">Heures</th>
+              <th *ngFor="let jour of jours" class="py-3 text-dark fw-bold border-bottom-0" style="width: 17.6%;">
+                {{ jour }}
+              </th>
+            </tr>
+          </thead>
+          
+          <tbody>
+            <tr *ngFor="let heure of heures">
+              <td class="fw-bold text-secondary bg-light py-4">{{ heure }}</td>
+              
+              <td *ngFor="let jour of jours" class="p-2" style="height: 120px; vertical-align: middle;">
+                
+                <div *ngIf="getCours(jour, heure) as cours" 
+                     class="h-100 rounded p-2 text-start border-start border-4 shadow-sm d-flex flex-column justify-content-center"
+                     [ngClass]="'border-' + cours.color + ' bg-' + cours.color + ' bg-opacity-10'">
+                  <div class="fw-bold text-dark mb-1" style="font-size: 0.88rem;">{{ cours.matiere }}</div>
+                  <div class="small text-muted mb-1" style="font-size: 0.78rem;">
+                    <i class="bi bi-person me-1"></i>{{ cours.prof }}
+                  </div>
+                  <div class="small fw-semibold" style="font-size: 0.78rem;" [ngClass]="'text-' + cours.color">
+                    <i class="bi bi-geo-alt me-1"></i>{{ cours.salle }}
+                  </div>
+                </div>
+
+                <div *ngIf="!getCours(jour, heure)" class="text-muted opacity-25 h-100 d-flex align-items-center justify-content-center">
+                  <small>Pas de cours</small>
+                </div>
+              </td>
+
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
