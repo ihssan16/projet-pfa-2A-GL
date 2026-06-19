@@ -1,5 +1,4 @@
 <div class="container-fluid px-4 py-4">
-  <!-- Header étudiant -->
   <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
       <div class="d-flex align-items-center mb-2">
@@ -14,24 +13,23 @@
     </div>
     <div class="dropdown">
       <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-        <i class="bi bi-person-circle"></i> Parent
+        <i class="bi bi-person-circle"></i> Étudiant
       </button>
       <ul class="dropdown-menu">
-        <li><a class="dropdown-item" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Déconnexion</a></li>
+        <li><a class="dropdown-item" style="cursor: pointer;" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Déconnexion</a></li>
       </ul>
     </div>
   </div>
 
-  <!-- Cartes KPI -->
   <div class="row g-4 mb-4">
-    <div class="col-md-3" *ngFor="let stat of stats">
+    <div class="col-md-4" *ngFor="let stat of stats">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start">
             <div>
               <p class="text-muted mb-1">{{ stat.label }}</p>
               <h2 class="display-5 fw-bold mb-0">
-                {{ stat.value }}<small class="fs-6 text-muted">{{ stat.suffix }}</small>
+                {{ stat.value }}<small class="fs-6 text-muted ms-1">{{ stat.suffix }}</small>
               </h2>
             </div>
             <div class="bg-{{ stat.color }} bg-opacity-10 rounded p-3">
@@ -43,9 +41,7 @@
     </div>
   </div>
 
-  <!-- Notes et Emploi du temps -->
   <div class="row g-4">
-    <!-- Dernières Notes -->
     <div class="col-md-7">
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-0 pt-4">
@@ -54,7 +50,7 @@
               <h5 class="fw-bold mb-0">Dernières Notes</h5>
               <small class="text-muted">Trimestre 3 • Année 2024-2025</small>
             </div>
-            <button class="btn btn-primary btn-sm" (click)="voirToutesNotes()">
+            <button class="btn btn-primary btn-sm rounded-pill px-3" (click)="voirToutesNotes()">
               Voir tout <i class="bi bi-arrow-right"></i>
             </button>
           </div>
@@ -80,14 +76,13 @@
                      [style.width]="(note.note / 20) * 100 + '%'">
                 </div>
               </div>
-              <small class="text-muted">{{ (note.note / 20) * 100 }}%</small>
+              <small class="text-muted">{{ (note.note / 20) * 100 | number:'1.0-0' }}%</small>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Emploi du temps -->
     <div class="col-md-5">
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-0 pt-4">
@@ -96,8 +91,8 @@
               <h5 class="fw-bold mb-0">Aujourd'hui</h5>
               <small class="text-muted">{{ getCurrentDate() }}</small>
             </div>
-            <button class="btn btn-outline-primary btn-sm" (click)="voirEmploiTemps()">
-              Emploi du temps complet
+            <button class="btn btn-outline-primary btn-sm rounded-pill" (click)="voirEmploiTemps()">
+              Emploi du temps
             </button>
           </div>
         </div>
@@ -119,7 +114,6 @@
         </div>
       </div>
 
-      <!-- Bulletins et Absences -->
       <div class="row g-4">
         <div class="col-md-6">
           <div class="card border-0 shadow-sm">
@@ -151,13 +145,16 @@
               <h5 class="fw-bold mb-0">Absences récentes</h5>
             </div>
             <div class="card-body">
-              <div *ngFor="let absence of absences" class="d-flex justify-content-between mb-2">
+              <div *ngIf="absences.length === 0" class="text-center py-3 text-muted">
+                <small>Aucune absence enregistrée</small>
+              </div>
+              <div *ngFor="let absence of absences" class="d-flex justify-content-between align-items-center mb-2">
                 <div>
-                  <div class="fw-bold">{{ absence.date }} - {{ absence.matiere }}</div>
+                  <div class="fw-bold text-dark" style="font-size: 0.9rem;">{{ absence.date }} - {{ absence.matiere }}</div>
                   <small class="text-muted">{{ absence.justifiee ? 'Justifiée' : 'Non justifiée' }}</small>
                 </div>
                 <div>
-                  <span class="badge" [class.bg-success]="absence.justifiee" [class.bg-danger]="!absence.justifiee">
+                  <span class="badge rounded-pill" [ngClass]="absence.justifiee ? 'bg-success' : 'bg-danger'">
                     {{ absence.justifiee ? '✓' : '✗' }}
                   </span>
                 </div>
@@ -165,6 +162,7 @@
             </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>

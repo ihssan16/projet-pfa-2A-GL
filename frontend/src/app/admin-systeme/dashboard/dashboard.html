@@ -1,298 +1,168 @@
- <div class="container-fluid px-4 py-4">
+<div class="container-fluid px-4 py-4">
 
   <div class="d-flex justify-content-between align-items-center mb-4">
-
     <div>
-
       <h1 class="display-6 fw-bold mb-0">Admin Système</h1>
-
       <p class="text-muted">Gestion technique & sécurité</p>
-
     </div>
-
-    <a routerLink="/admin-systeme/demandes-inscription" class="btn btn-warning">
-
-      <i class="bi bi-building-add"></i> Demandes d'inscription
-
-    </a>
-
-    <div class="dropdown">
-
-      <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-
-        <i class="bi bi-person-circle"></i> Super Admin
-
-      </button>
-
-      <ul class="dropdown-menu">
-
-        <li><a class="dropdown-item" style="cursor: pointer;" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Déconnexion</a></li>
-
-      </ul>
-
+    
+    <div class="d-flex gap-3 align-items-center">
+      <a routerLink="/admin-systeme/demandes-inscription" class="btn btn-warning shadow-sm fw-medium">
+        <i class="bi bi-building-add me-1"></i> Demandes d'inscription
+      </a>
+      
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle bg-white shadow-sm" data-bs-toggle="dropdown">
+          <i class="bi bi-person-circle me-1"></i> Super Admin
+        </button>
+        <ul class="dropdown-menu shadow">
+          <li><a class="dropdown-item text-danger" style="cursor: pointer;" (click)="logout()"><i class="bi bi-box-arrow-right me-2"></i> Déconnexion</a></li>
+        </ul>
+      </div>
     </div>
-
   </div>
-
-
-  <!-- 2 cartes KPI prenant 50% chacune (col-md-6) -->
 
   <div class="row g-4 mb-4">
-
     <div class="col-md-6" *ngFor="let stat of stats">
-
       <div class="card border-0 shadow-sm h-100">
-
         <div class="card-body">
-
           <div class="d-flex justify-content-between align-items-start">
-
             <div>
-
               <p class="text-muted mb-1">{{ stat.label }}</p>
-
               <h2 class="display-5 fw-bold mb-0">{{ stat.value }}</h2>
-
               <small class="text-{{ stat.trend === 'up' ? 'success' : 'danger' }}">
-
                 {{ stat.change }}
-
               </small>
-
             </div>
-
             <div class="bg-{{ stat.color }} bg-opacity-10 rounded p-3">
-
               <i class="bi bi-{{ stat.icon }} fs-2 text-{{ stat.color }}"></i>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
-
   </div>
-
-
-  <!-- Section inférieure : Tableau (8 colonnes) + Historique (4 colonnes) -->
 
   <div class="row g-4">
-
-    <!-- Tableau Utilisateurs -->
-
     <div class="col-md-8">
-
-      <div class="card border-0 shadow-sm">
-
-        <div class="card-header bg-white border-0 pt-4">
-
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-0 pt-4 pb-3">
           <div class="d-flex justify-content-between align-items-center">
-
             <div>
-
               <h5 class="fw-bold mb-0">Gestion Utilisateurs</h5>
-
               <small class="text-muted">Comptes et permissions</small>
-
             </div>
-
-            <button class="btn btn-primary btn-sm" routerLink="/admin-systeme/utilisateurs">
-
-              Voir Plus
-
+            <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" routerLink="/admin-systeme/utilisateurs">
+              Voir Plus <i class="bi bi-arrow-right ms-1"></i>
             </button>
-
           </div>
-
         </div>
-
-        <div class="card-body">
-
+        <div class="card-body p-0">
           <div class="table-responsive">
-
-            <table class="table table-hover">
-
-              <thead>
-
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light text-secondary fs-7">
                 <tr>
-
-                  <th>Nom</th>
-
+                  <th class="ps-4">Nom</th>
                   <th>Statut</th>
-
                   <th>Email</th>
-
                   <th>Rôle</th>
-
                   <th>Dernière activité</th>
-
                 </tr>
-
               </thead>
-
               <tbody>
-
                 <tr *ngIf="chargement">
-
-                  <td colspan="5" class="text-center py-4 text-muted">
-
+                  <td colspan="5" class="text-center py-5 text-muted">
                     <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-
                     Chargement de l'aperçu...
-
                   </td>
-
                 </tr>
-
                 <tr *ngFor="let user of utilisateurs">
-
-                  <td class="fw-bold">
-
+                  <td class="fw-bold text-dark ps-4">
                     {{ user.first_name || '' }} {{ user.last_name || user.nom || '' }}
-
                   </td>
-
                   <td>
-
                     <span class="badge" [ngClass]="user.is_active ? 'bg-success' : 'bg-secondary'">
-
                       {{ user.is_active ? 'Actif' : 'Inactif' }}
-
                     </span>
-
                   </td>
-
-                  <td class="text-muted">{{ user.email }}</td>
-
+                  <td class="text-secondary">{{ user.email }}</td>
                   <td>
-
-                    <span class="badge bg-primary bg-opacity-10 text-primary">
-
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1">
                       {{ getRoleLabel(user.role) }}
-
                     </span>
-
                   </td>
-
                   <td>
-
-                    <small class="text-muted">
-
+                    <small class="text-secondary fw-medium">
                       <i class="bi bi-clock me-1"></i>
-
-                      <span *ngIf="user.last_login">
-
-                        {{ user.last_login | date:'dd/MM HH:mm' }}
-
-                      </span>
-
-                      <span *ngIf="!user.last_login">
-
-                        Jamais
-
-                      </span>
-
+                      <span *ngIf="user.last_login">{{ user.last_login | date:'dd/MM HH:mm' }}</span>
+                      <span *ngIf="!user.last_login">Jamais</span>
                     </small>
-
                   </td>
-
                 </tr>
-
               </tbody>
-
             </table>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
-
 
     <div class="col-md-4">
-
       <div class="card border-0 shadow-sm mb-4 h-100">
-
         <div class="card-header bg-white border-0 pt-4 pb-2">
-
           <div class="d-flex justify-content-between align-items-center">
-
             <h5 class="fw-bold mb-0">Activité récente</h5>
-
-            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">Aujourd'hui</span>
-
+            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">Aujourd'hui</span>
           </div>
-
         </div>
-
-       
-
+        
         <div class="card-body p-0">
-
           <div class="list-group list-group-flush">
             
-  <div *ngIf="!activites || activites.length === 0" class="text-center py-5 text-muted">
-    <i class="bi bi-clock-history fs-1 text-light mb-2 d-block"></i>
-    <small>Aucune activité enregistrée</small>
-  </div>
+            <div *ngIf="!activites || activites.length === 0" class="text-center py-5 text-muted">
+              <i class="bi bi-clock-history fs-1 text-light mb-2 d-block"></i>
+              <small>Aucune activité enregistrée</small>
+            </div>
 
-  <div class="list-group-item border-0 py-3 px-4 list-group-item-action" style="cursor: default;" *ngFor="let log of activites">
-    <div class="d-flex align-items-center">
-      
-      <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-           [ngClass]="log.color ? 'bg-' + log.color + '-subtle' : 'bg-primary-subtle'"
-           style="width: 45px; height: 45px; min-width: 45px;">
-        <i class="bi fs-5"
-           [ngClass]="[log.icon ? 'bi-' + log.icon : 'bi-activity', log.color ? 'text-' + log.color : 'text-primary']">
-        </i>
-      </div>
-      
-      <div class="flex-grow-1 text-truncate">
-        <h6 class="mb-1 fw-semibold text-dark text-truncate" [title]="log.action">
-          {{ log.action }}
-        </h6>
-        <p class="mb-0 text-muted small text-truncate">
-          <i class="bi bi-arrow-return-right me-1 opacity-50"></i>
-          {{ log.detail || 'Système' }}
-        </p>
-      </div>
-      
-      <div class="text-end ms-3">
-        <small class="text-muted fw-medium" style="font-size: 0.75rem;">
-          <i class="bi bi-clock me-1"></i>
-          {{ log.heure || '00:00' }}
-        </small>
-      </div>
-      
-    </div>
-  </div>
+            <div class="list-group-item border-0 py-3 px-4 list-group-item-action" style="cursor: default;" *ngFor="let log of activites">
+              <div class="d-flex align-items-center">
+                
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                     [ngClass]="log.color ? 'bg-' + log.color + '-subtle' : 'bg-primary-subtle'"
+                     style="width: 45px; height: 45px; min-width: 45px;">
+                  <i class="bi fs-5"
+                     [ngClass]="[log.icon ? 'bi-' + log.icon : 'bi-activity', log.color ? 'text-' + log.color : 'text-primary']">
+                  </i>
+                </div>
+                
+                <div class="flex-grow-1 text-truncate">
+                  <h6 class="mb-1 fw-semibold text-dark text-truncate" [title]="log.action">
+                    {{ log.action }}
+                  </h6>
+                  <p class="mb-0 text-muted small text-truncate">
+                    <i class="bi bi-arrow-return-right me-1 opacity-50"></i>
+                    {{ log.detail || 'Système' }}
+                  </p>
+                </div>
+                
+                <div class="text-end ms-3">
+                  <small class="text-muted fw-medium" style="font-size: 0.75rem;">
+                    <i class="bi bi-clock me-1"></i>
+                    {{ log.heure || '00:00' }}
+                  </small>
+                </div>
+                
+              </div>
+            </div>
 
-</div>
-
+          </div>
         </div>
-
-       
-
+        
         <div class="card-footer bg-white border-top-0 pt-2 pb-4 text-center px-4">
-
           <a routerLink="/admin-systeme/historique" class="btn btn-light w-100 rounded-pill text-primary fw-medium hover-shadow-sm transition-all">
-
             Voir tout l'historique <i class="bi bi-arrow-right ms-2"></i>
-
           </a>
-
         </div>
-
       </div>
-
     </div>
-
   </div>
-
-</div> 
+</div>

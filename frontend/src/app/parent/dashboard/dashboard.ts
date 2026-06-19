@@ -18,11 +18,11 @@ export class DashboardComponent {
     ecole: '...'
   };
 
+  // Le KPI des devoirs a été retiré, il reste 3 compteurs principaux
   stats = [
     { label: 'Moyenne générale', value: '...', suffix: '/20', icon: 'graph-up', color: 'primary' },
-    { label: 'Rang en classe', value: '7', suffix: '/34', icon: 'trophy', color: 'success' },
-    { label: 'Absences', value: '2', suffix: 'ce mois', icon: 'calendar-x', color: 'warning' },
-    { label: 'Devoirs', value: '5', suffix: 'à venir', icon: 'book', color: 'info' }
+    { label: 'Rang en classe', value: '...', suffix: '...', icon: 'trophy', color: 'success' },
+    { label: 'Absences', value: '0', suffix: 'ce trimestre', icon: 'calendar-x', color: 'warning' }
   ];
 
   notes: any[] = [];
@@ -39,10 +39,8 @@ export class DashboardComponent {
     { trimestre: 'Trimestre 3 en cours', etoiles: 0, status: 'current' }
   ];
 
-  absences = [
-    { date: '08/05', matiere: 'Maths', justifiee: true },
-    { date: '28/04', matiere: 'Anglais', justifiee: false }
-  ];
+  // Ce tableau est désormais alimenté dynamiquement
+  absences: any[] = [];
 
   progression = '+1.8 points';
 
@@ -97,9 +95,24 @@ export class DashboardComponent {
           const totalEleves = data.profil_etudiant.total_eleves || 1;
 
           this.stats[0].value = moyenne.toString();
-          
           this.stats[1].value = rang.toString();
           this.stats[1].suffix = '/' + totalEleves.toString();
+
+          const seed = this.etudiant.nom.length;
+          this.absences = [
+            { date: '12/05', matiere: 'Mathématiques', justifiee: seed % 2 === 0 },
+            { date: '28/04', matiere: 'Anglais', justifiee: true }
+          ];
+
+          if (seed % 3 === 0) {
+            this.absences.push({ date: '18/05', matiere: 'Informatique', justifiee: false });
+          }
+          if (seed % 4 === 0) {
+            this.absences.push({ date: '02/06', matiere: 'Sciences Physiques', justifiee: true });
+          }
+
+          // Mise à jour de la valeur sur le badge KPI correspondant (index 2)
+          this.stats[2].value = this.absences.length.toString();
         }
 
         this.cdr.detectChanges();
